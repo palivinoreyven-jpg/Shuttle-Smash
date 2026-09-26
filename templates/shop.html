@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop - EBC Badminton Court</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --navy-primary: #0f172a;
+            --navy-hover: #1e3a8a;
+            --navy-dark: #0a192f;
+            --navy-deep: #020617;
+        }
+
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #334155;
+        }
+
+        /* Dark Navy Navbar */
+        .admin-navbar {
+            background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-deep) 100%);
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .admin-nav-logo {
+            height: 52px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+        }
+
+        .admin-brand-text {
+            font-size: 1.35rem;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-link-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Header Card Bar */
+        .admin-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 25px rgba(15, 23, 42, 0.06);
+            overflow: hidden;
+        }
+
+        /* Buttons */
+        .btn-navy {
+            background-color: var(--navy-primary);
+            border: none;
+            color: #ffffff;
+            transition: all 0.2s ease;
+        }
+
+        .btn-navy:hover {
+            background-color: var(--navy-hover);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+        }
+
+        .btn-outline-navy {
+            border: 1px solid var(--navy-primary);
+            color: var(--navy-primary);
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+
+        .btn-outline-navy:hover, .btn-outline-navy.active {
+            background-color: var(--navy-primary);
+            color: #ffffff;
+        }
+
+        /* Product Card Styling */
+        .product-card {
+            border: none;
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
+        }
+
+        .badge-pill {
+            padding: 0.4em 0.8em;
+            font-weight: 600;
+            border-radius: 30px;
+        }
+
+        .form-control:focus {
+            border-color: var(--navy-hover);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark admin-navbar mb-4 shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center gap-3 fw-bold admin-brand-text" href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" 
+                     alt="EBC Logo" 
+                     class="admin-nav-logo"
+                     onerror="this.onerror=null; this.src='/static/image/logo.png';">
+                <span>EBC Badminton</span>
+            </a>
+
+            <div class="d-flex align-items-center gap-2 ms-auto">
+                <a href="{{ url_for('view_cart') }}" class="btn btn-sm nav-link-btn px-3 py-2 fw-semibold rounded-3">
+                    <i class="bi bi-cart3 me-1"></i> View Cart
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-sm nav-link-btn px-3 py-2 fw-semibold rounded-3">
+                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </a>
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger px-3 py-2 fw-semibold rounded-3 ms-1" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 my-4">
+
+        <!-- Header Toolbar -->
+        <div class="card admin-card p-3 mb-4 bg-white">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div>
+                    <h4 class="fw-bold text-dark mb-1">Pro Shop & Equipment</h4>
+                    <p class="text-muted small mb-0">Browse racket gear, shuttlecocks, accessories, and court apparel.</p>
+                </div>
+                
+                {% if session.get('role') == 'admin' %}
+                    <div>
+                        <a href="{{ url_for('admin_stocks') }}" class="btn btn-navy fw-bold text-nowrap px-3 py-2 rounded-3">
+                            <i class="bi bi-boxes me-1"></i> Manage Inventory
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Category Filter Bar -->
+        <div class="mb-4 d-flex gap-2 flex-wrap" role="group">
+            <a href="{{ url_for('shop', category='All') }}" 
+               class="btn btn-sm rounded-3 fw-semibold px-3 py-2 {{ 'btn-navy' if selected_category == 'All' or not selected_category else 'btn-outline-navy' }}">
+                <i class="bi bi-grid-fill me-1"></i> All Products
+            </a>
+            {% for category in categories %}
+                <a href="{{ url_for('shop', category=category) }}" 
+                   class="btn btn-sm rounded-3 fw-semibold px-3 py-2 {{ 'btn-navy' if selected_category == category else 'btn-outline-navy' }}">
+                    {{ category }}
+                </a>
+            {% endfor %}
+        </div>
+
+        <!-- Product Grid -->
+        {% if products %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 row-cols-xxl-4 g-4">
+                {% for product in products %}
+                <div class="col">
+                    <div class="card h-100 product-card p-2">
+                        <div class="card-body d-flex flex-column p-3">
+                            <!-- Category & Stock Status Badges -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge bg-light text-dark border px-2 py-1">{{ product[2] }}</span>
+                                {% if product[4] > 0 %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle badge-pill">
+                                        <i class="bi bi-check-circle me-1"></i>In Stock: {{ product[4] }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle badge-pill">
+                                        <i class="bi bi-x-circle me-1"></i>Out of Stock
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Product Details -->
+                            <h5 class="card-title fw-bold text-dark mb-1">{{ product[1] }}</h5>
+                            <p class="card-text text-muted small flex-grow-1 mb-3">
+                                {{ product[5] if product[5] else 'No description available for this item.' }}
+                            </p>
+                            
+                            <!-- Price -->
+                            <div class="my-2">
+                                <span class="fs-4 text-dark fw-bold">₱{{ "%.2f"|format(product[3]) }}</span>
+                            </div>
+
+                            <!-- Actions Form -->
+                            {% if product[4] > 0 %}
+                                <form action="{{ url_for('add_to_cart', product_id=product[0]) }}" method="POST" class="mt-auto pt-2">
+                                    <div class="input-group mb-2">
+                                        <span class="input-group-text bg-light text-muted small border-end-0">Qty</span>
+                                        <input type="number" name="quantity" class="form-control border-start-0 text-center fw-bold" value="1" min="1" max="{{ product[4] }}" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-navy w-100 fw-bold py-2 rounded-3">
+                                        <i class="bi bi-cart-plus me-1"></i> Add to Cart
+                                    </button>
+                                </form>
+                            {% else %}
+                                <div class="mt-auto pt-2">
+                                    <button class="btn btn-light text-muted border w-100 py-2 rounded-3 fw-semibold" disabled>
+                                        Currently Unavailable
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card admin-card p-5 text-center">
+                <div class="py-4">
+                    <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
+                    <h4 class="fw-bold text-dark">No Products Available</h4>
+                    <p class="text-muted mb-0">Check back later for court equipment, shuttlecocks, and gear!</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

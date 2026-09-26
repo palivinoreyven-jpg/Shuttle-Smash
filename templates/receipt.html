@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt #{{ transaction.id }} - EBC Badminton</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .card { border: none !important; box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                
+                <div class="card shadow-lg border-0 rounded-4">
+                    <div class="card-body p-4">
+                        
+                        <!-- Header -->
+                        <div class="text-center mb-4">
+                            <h3 class="fw-bold text-uppercase mb-1">EBC Badminton Court</h3>
+                            <p class="text-muted small mb-0">Official Transaction Receipt</p>
+                            <hr class="my-3">
+                        </div>
+
+                        <!-- General Details -->
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Transaction ID:</span>
+                            <span class="fw-bold">#{{ transaction.id }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Customer Name:</span>
+                            <span class="fw-bold">{{ transaction.customer_name }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Contact:</span>
+                            <span class="fw-bold">{{ transaction.contact }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Type:</span>
+                            <span class="badge bg-dark">{{ transaction.type }}</span>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <!-- Conditional Content based on Transaction Type -->
+                        {% if transaction.type == 'Court Booking' %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Court Reserved:</span>
+                                <span class="fw-bold">{{ transaction.details.court_number }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Booking Date:</span>
+                                <span class="fw-bold">{{ transaction.details.booking_date }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Time & Duration:</span>
+                                <span class="fw-bold">{{ transaction.details.booking_time }} ({{ transaction.details.duration }} hrs)</span>
+                            </div>
+                        {% elif transaction.type == 'Shop Order' %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Product Purchased:</span>
+                                <span class="fw-bold">{{ transaction.details.product_name }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Quantity:</span>
+                                <span class="fw-bold">{{ transaction.details.quantity }}</span>
+                            </div>
+                        {% endif %}
+
+                        <hr class="my-3">
+
+                        <!-- Total -->
+                        <div class="d-flex justify-content-between align-items-center fs-5 fw-bold">
+                            <span>Total Amount Paid:</span>
+                            <span class="text-success">₱{{ "%.2f"|format(transaction.total_amount) }}</span>
+                        </div>
+
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="card-footer bg-light border-0 p-3 d-flex gap-2 no-print">
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary w-50">Back to Dashboard</a>
+                        <button onclick="window.print()" class="btn btn-dark w-50">
+                            <i class="bi bi-printer me-1"></i> Print Receipt
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

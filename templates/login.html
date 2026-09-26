@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - EBC Badminton Court Management</title>
+    <style>
+        /* Black, Navy Blue, and Light Ray Yellow Gradient Background */
+        body {
+    /* Deep Navy & Black base with a sharp diagonal Yellow Light Ray */
+    background: 
+        /* 1. Sharp Light Beam (Ray) passing diagonally across the card */
+        linear-gradient(
+            225deg, 
+            rgba(254, 240, 138, 0.85) 0%,   /* Bright light source (Top Right) */
+            rgba(234, 179, 8, 0.35) 18%,    /* Golden core beam */
+            rgba(254, 240, 138, 0.12) 35%,   /* Soft ray edge */
+            transparent 50%                 /* Fades out into darkness */
+        ),
+        /* 2. Radial glow highlighting the source point */
+        radial-gradient(
+            circle at 90% 10%, 
+            rgba(254, 240, 138, 0.6) 0%, 
+            rgba(234, 179, 8, 0.2) 25%, 
+            transparent 60%
+        ),
+        /* 3. Dark Navy to Deep Black background base */
+        linear-gradient(
+            135deg, 
+            #0a192f 0%, 
+            #020617 50%, 
+            #000000 100%
+        );
+    background-attachment: fixed;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+        
+
+        /* Clean White Card */
+        .login-card {
+            background-color: #ffffff;
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            color: #0f172a;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        /* Sizing and subtle drop shadow for the logo */
+        .login-logo {
+            max-width: 160px;
+            height: auto;
+            object-fit: contain;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin: 0 0 1.8rem 0;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.4rem;
+        }
+
+        .login-card input[type="text"],
+        .login-card input[type="email"],
+        .login-card input[type="password"] {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            color: #0f172a;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .login-card input:focus {
+            border-color: #1e3a8a;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
+        }
+
+        /* Navy Blue Primary Button with Accent Focus */
+        .login-card button {
+            width: 100%;
+            padding: 0.85rem;
+            background-color: #0f172a;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .login-card button:hover {
+            background-color: #1e3a8a;
+            transform: translateY(-1px);
+        }
+
+        .links-container {
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .links-container a,
+        .forgot-link {
+            color: #1e3a8a;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .links-container a:hover,
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <!-- Logo Header -->
+        <div>
+            <img src="{{ url_for('static', filename='images/logo.png') }}" 
+                 alt="EBC Esguerra Badminton Court Logo" 
+                 class="login-logo"
+                 onerror="this.onerror=null; this.src='/static/image/logo.png';">
+            <p class="subtitle">Sign in to access court bookings & pro shop</p>
+        </div>
+
+        {% if error %}
+            <p style="color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; padding: 0.6rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.2rem;">
+                {{ error }}
+            </p>
+        {% endif %}
+
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="text" name="email" placeholder="enter email address" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <div style="text-align: right; margin-bottom: 1rem;">
+                <a href="/forgot-password" class="forgot-link" style="font-size: 0.8rem; font-weight: 500;">Forgot Password?</a>
+            </div>
+
+            <button type="submit">Sign In</button>
+        </form>
+
+        <div class="links-container">
+            Don't have an account? <a href="/signup">Sign Up</a>
+        </div>
+    </div>
+
+</body>
+</html>
