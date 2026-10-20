@@ -21,5 +21,6 @@ def get_db():
             password=os.getenv('CLOUD_DB_PASSWORD'),
             database=os.getenv('CLOUD_DB_NAME'),
             autocommit=True,
-            ssl_disabled=False  # TiDB requires SSL
+            ssl_verify_cert=False,   # Bypass strict cert verification
+            ssl_verify_identity=False
         )
