@@ -1,8 +1,14 @@
 import os
+import socket
 import pymysql
 
 def get_db():
-    # Check if we are running locally or in the cloud
+    # Force IPv4 resolution to avoid Vercel's "Device or resource busy" error
+    original_getaddrinfo = socket.getaddrinfo
+    socket.getaddrinfo = lambda host, port, family=0, type=0, proto=0, flags=0: original_getaddrinfo(
+        host, port, socket.AF_INET, type, proto, flags
+    )
+
     db_mode = os.getenv('DB_MODE', 'local')
     
     if db_mode == 'local':
@@ -23,5 +29,5 @@ def get_db():
             password=os.getenv('CLOUD_DB_PASSWORD'),
             database=os.getenv('CLOUD_DB_NAME'),
             autocommit=True,
-            ssl={'ssl': {}}  # This is the magic line that allows TiDB to accept the connection
+            ssl={'ssl': {}} 
         )
