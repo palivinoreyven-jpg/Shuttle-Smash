@@ -121,7 +121,7 @@
                         {% endif %}
 
                         <!-- Verification Form -->
-                        <form action="{{ url_for('verify_email') }}" method="POST" class="mt-4">
+                        <form action="{{ url_for('auth.verify_email') }}" method="POST" class="mt-4">
                             <div class="mb-4">
                                 <label class="form-label fw-bold text-secondary small">Enter 6-Digit Code</label>
                                 <input type="text" 
@@ -139,7 +139,7 @@
                         </form>
 
                         <div class="mt-4">
-                            <a href="{{ url_for('signup') }}" class="small link-navy">← Back to Sign Up</a>
+                            <a href="{{ url_for('auth.signup') }}" class="small link-navy">← Back to Sign Up</a>
                         </div>
 
                     </div>

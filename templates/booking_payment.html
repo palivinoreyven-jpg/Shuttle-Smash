@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Payment - EBC Badminton</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --gold-primary: #d4af37;
+            --gold-light: #fef08a;
+            --gold-dark: #996515;
+            --gold-gradient: linear-gradient(135deg, #fff099 0%, #d4af37 50%, #aa7c11 100%);
+            --header-bg: rgba(10, 12, 16, 0.95);
+            --header-border: rgba(212, 175, 55, 0.25);
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text-main);
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .custom-navbar {
+            background: var(--header-bg) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--header-border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(212, 175, 55, 0.08);
+            padding-top: 0.8rem;
+            padding-bottom: 0.8rem;
+        }
+
+        .navbar-logo {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4));
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand:hover .navbar-logo {
+            transform: scale(1.06) rotate(-2deg);
+        }
+
+        .brand-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-outline-gold {
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            color: var(--gold-light);
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 0.5rem 1.1rem;
+            background: rgba(212, 175, 55, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-gold:hover {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: #d4af37;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        .payment-card {
+            background-color: var(--card-bg);
+            border-radius: 18px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .payment-header {
+            background: var(--header-bg);
+            color: #ffffff;
+            padding: 28px 24px;
+            text-align: center;
+            border-bottom: 2px solid var(--gold-primary);
+        }
+
+        .payment-header h3 {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.25rem;
+        }
+
+        .section-subtitle {
+            color: var(--gold-dark);
+            font-weight: 700;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 8px;
+        }
+
+        .text-gold {
+            color: #b48811 !important;
+        }
+
+        /* Amount box */
+        .amount-box {
+            padding: 1.25rem 1.5rem;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .amount-label {
+            color: #78350f;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .amount-value {
+            color: #7a5b0a;
+            font-weight: 800;
+            font-size: 2rem;
+            margin: 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* QR box */
+        .qr-container {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 14px;
+            border: 2px dashed rgba(212, 175, 55, 0.4);
+            background: #ffffff;
+        }
+
+        .qr-image {
+            max-width: 260px;
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            display: block;
+            margin: 0 auto;
+        }
+
+        .qr-empty {
+            padding: 2rem 1rem;
+            color: #94a3b8;
+        }
+
+        .qr-empty i {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 0.75rem;
+            color: #cbd5e1;
+        }
+
+        .wallet-info {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            background: rgba(212, 175, 55, 0.08);
+            border-radius: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            display: inline-block;
+            min-width: 240px;
+        }
+
+        .wallet-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #996515;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .wallet-number {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #0f172a;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.05em;
+        }
+
+        /* Instructions */
+        .instructions-box {
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            background: #f8fafc;
+            border-left: 4px solid var(--gold-primary);
+            color: #475569;
+            font-size: 0.9rem;
+            line-height: 1.55;
+            white-space: pre-line;
+        }
+
+        /* File input custom */
+        .proof-input-wrapper {
+            border: 2px dashed rgba(212, 175, 55, 0.5);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            background: rgba(212, 175, 55, 0.03);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .proof-input-wrapper:hover {
+            background: rgba(212, 175, 55, 0.08);
+            border-color: var(--gold-primary);
+        }
+
+        .proof-input-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .proof-input-icon {
+            font-size: 2.4rem;
+            color: var(--gold-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .proof-input-label {
+            font-weight: 700;
+            color: #334155;
+            font-size: 0.95rem;
+        }
+
+        .proof-input-hint {
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .proof-filename {
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: #059669;
+            font-weight: 600;
+        }
+
+        /* Summary list */
+        .summary-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .summary-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px dashed #e2e8f0;
+            font-size: 0.9rem;
+        }
+
+        .summary-list li:last-child {
+            border-bottom: none;
+        }
+
+        .summary-list .label {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .summary-list .value {
+            color: #0f172a;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .btn-payment {
+            background: var(--gold-gradient);
+            color: #000000;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn-payment:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+            color: #000000;
+        }
+
+        .btn-payment:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg sticky-top custom-navbar mb-4">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-3" href="{{ url_for('bookings.index') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}"
+                     alt="EBC Logo"
+                     class="navbar-logo"
+                     onerror="this.onerror=null; this.src='/static/image/logo.png';">
+                <span class="brand-title">Esguerra Badminton Court</span>
+            </a>
+            <button class="navbar-toggler border-0 text-light shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="d-flex gap-2 ms-auto mt-3 mt-lg-0">
+                    <a href="{{ url_for('bookings.my_bookings') }}" class="btn btn-outline-gold btn-sm fw-semibold">
+                        <i class="bi bi-calendar-check me-1"></i> My Reservations
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+
+                <div class="payment-card">
+                    <div class="payment-header">
+                        <h3 class="fw-bold"><i class="bi bi-qr-code-scan me-2"></i>Complete Your Payment</h3>
+                        <p class="mb-0 text-gold opacity-90 fw-semibold small">
+                            Reservation #{{ booking[0] }} — Pending
+                        </p>
+                    </div>
+
+                    <div class="p-4 p-md-5">
+
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category, message in messages %}
+                              <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show mb-4 rounded-3" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                              </div>
+                            {% endfor %}
+                          {% endif %}
+                        {% endwith %}
+
+                        <!-- Amount -->
+                        <div class="amount-box mb-4">
+                            <div>
+                                <p class="amount-label mb-0">Total Amount Due</p>
+                                <p class="amount-value mb-0">₱{{ "%.2f"|format(booking[8]) }}</p>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                                    <i class="bi bi-hourglass-split me-1"></i> Awaiting Payment
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="row g-4">
+
+                            <!-- LEFT: QR + wallet info -->
+                            <div class="col-md-6">
+                                <h5 class="section-subtitle mb-3">
+                                    <i class="bi bi-phone me-1 text-gold"></i> Scan to Pay
+                                </h5>
+
+                                <div class="qr-container">
+                                    {% if qr_filename %}
+                                        <img src="{{ url_for('static', filename='uploads/payment_qr/' ~ qr_filename) }}"
+                                             alt="{{ wallet_name }} QR Code"
+                                             class="qr-image">
+                                        <div class="wallet-info">
+                                            <div class="wallet-name">{{ wallet_name }}</div>
+                                            {% if wallet_number %}
+                                                <div class="wallet-number">{{ wallet_number }}</div>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="qr-empty">
+                                            <i class="bi bi-qr-code"></i>
+                                            <p class="fw-bold mb-1">QR code not yet available</p>
+                                            <p class="small mb-0">Please contact the admin to set up the payment QR.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                {% if payment_instructions %}
+                                <div class="instructions-box mt-3">
+                                    {{ payment_instructions }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- RIGHT: Summary + proof upload -->
+                            <div class="col-md-6">
+                                <h5 class="section-subtitle mb-3">
+                                    <i class="bi bi-receipt me-1 text-gold"></i> Reservation Details
+                                </h5>
+
+                                <ul class="summary-list mb-4">
+                                    <li>
+                                        <span class="label">Customer</span>
+                                        <span class="value">{{ booking[1] }}</span>
+                                    </li>
+                                    <li>
+                                        <span class="label">Court</span>
+                                        <span class="value">Court {{ booking[4] }}</span>
+                                    </li>
+                                    <li>
+                                        <span class="label">Date</span>
+                                        <span class="value">{{ booking[5] }}</span>
+                                    </li>
+                                    <li>
+                                        <span class="label">Time</span>
+                                        <span class="value">{{ booking[6] }}</span>
+                                    </li>
+                                    <li>
+                                        <span class="label">Duration</span>
+                                        <span class="value">{{ booking[7] }} hour(s)</span>
+                                    </li>
+                                    <li>
+                                        <span class="label">Total</span>
+                                        <span class="value" style="color:#059669;">₱{{ "%.2f"|format(booking[8]) }}</span>
+                                    </li>
+                                </ul>
+
+                                <h5 class="section-subtitle mb-3">
+                                    <i class="bi bi-cloud-upload me-1 text-gold"></i> Upload Proof of Payment
+                                </h5>
+
+                                <form action="{{ url_for('bookings.submit_payment', booking_id=booking[0]) }}"
+                                      method="POST"
+                                      enctype="multipart/form-data"
+                                      id="paymentForm">
+
+                                    <label for="proofInput" class="proof-input-wrapper d-block w-100">
+                                        <div class="proof-input-icon">
+                                            <i class="bi bi-image"></i>
+                                        </div>
+                                        <div class="proof-input-label">Click to upload a screenshot of your payment</div>
+                                        <div class="proof-input-hint">
+                                            Accepted: PNG, JPG, JPEG, WEBP · Max 7 MB
+                                        </div>
+                                        <div id="proofFilename" class="proof-filename" style="display:none;"></div>
+                                        <input type="file"
+                                               id="proofInput"
+                                               name="payment_proof"
+                                               accept=".png,.jpg,.jpeg,.webp"
+                                               required>
+                                    </label>
+
+                                    <div class="alert alert-warning small mt-3 d-flex align-items-start gap-2 mb-3">
+                                        <i class="bi bi-info-circle-fill mt-1"></i>
+                                        <div>
+                                            <strong>Important:</strong> Your reservation will only be verified
+                                            after the admin confirms your payment. Please make sure your
+                                            screenshot clearly shows the amount and transaction reference.
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" id="submitBtn" class="btn btn-payment w-100 fs-6">
+                                        <i class="bi bi-send-check me-1"></i> I've Paid — Submit Payment
+                                    </button>
+                                </form>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Show selected filename
+        document.addEventListener('DOMContentLoaded', function () {
+            const input = document.getElementById('proofInput');
+            const display = document.getElementById('proofFilename');
+            const form = document.getElementById('paymentForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (input && display) {
+                input.addEventListener('change', function () {
+                    if (input.files && input.files.length > 0) {
+                        display.textContent = '✓ ' + input.files[0].name;
+                        display.style.display = 'block';
+                    } else {
+                        display.style.display = 'none';
+                    }
+                });
+            }
+
+            // Prevent double-submit
+            if (form && submitBtn) {
+                form.addEventListener('submit', function () {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Submitting...';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

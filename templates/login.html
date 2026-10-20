@@ -3,185 +3,369 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - EBC Badminton Court Management</title>
+    <title>Login - Esguerra Badminton Court</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        /* Black, Navy Blue, and Light Ray Yellow Gradient Background */
-        body {
-    /* Deep Navy & Black base with a sharp diagonal Yellow Light Ray */
-    background: 
-        /* 1. Sharp Light Beam (Ray) passing diagonally across the card */
-        linear-gradient(
-            225deg, 
-            rgba(254, 240, 138, 0.85) 0%,   /* Bright light source (Top Right) */
-            rgba(234, 179, 8, 0.35) 18%,    /* Golden core beam */
-            rgba(254, 240, 138, 0.12) 35%,   /* Soft ray edge */
-            transparent 50%                 /* Fades out into darkness */
-        ),
-        /* 2. Radial glow highlighting the source point */
-        radial-gradient(
-            circle at 90% 10%, 
-            rgba(254, 240, 138, 0.6) 0%, 
-            rgba(234, 179, 8, 0.2) 25%, 
-            transparent 60%
-        ),
-        /* 3. Dark Navy to Deep Black background base */
-        linear-gradient(
-            135deg, 
-            #0a192f 0%, 
-            #020617 50%, 
-            #000000 100%
-        );
-    background-attachment: fixed;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-}
-        
+        :root {
+            --gold-primary: #d4af37;
+            --gold-light: #fef08a;
+            --gold-dark: #996515;
+            --gold-gradient: linear-gradient(135deg, #fff099 0%, #d4af37 50%, #aa7c11 100%);
+        }
 
-        /* Clean White Card */
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0a0c10;
+            overflow: hidden;
+        }
+
+        .login-wrapper {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4%;
+            overflow: hidden;
+        }
+
+        /* Fullscreen slideshow background */
+        .hero-bg-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            z-index: 1;
+        }
+
+        .hero-bg-slide.active {
+            opacity: 1;
+        }
+
+        /* Balanced overlay */
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 88% 50%, rgba(212, 175, 55, 0.55) 0%, rgba(180, 140, 25, 0.2) 40%, rgba(10, 14, 23, 0.7) 75%),
+                linear-gradient(90deg, rgba(8, 12, 20, 0.68) 0%, rgba(10, 12, 16, 0.35) 60%);
+            z-index: 2;
+        }
+
+        /* Left brand header */
+        .left-brand-section {
+            position: relative;
+            z-index: 10;
+            max-width: 520px;
+        }
+
+        .court-title {
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 3.6rem;
+            line-height: 1.15;
+            letter-spacing: -1px;
+            text-shadow: 0 4px 25px rgba(0, 0, 0, 0.8);
+            margin-bottom: 1.25rem;
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(135deg, #fff6b3 0%, #d4af37 50%, #b8860b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 12px rgba(212, 175, 55, 0.4));
+        }
+
+        .court-subtitle {
+            color: #e5e7eb;
+            font-size: 1.15rem;
+            font-weight: 500;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* ============================================
+           LIGHTER GLASS LOGIN CARD
+           ============================================ */
         .login-card {
-            background-color: #ffffff;
-            border-radius: 20px;
-            padding: 2.5rem 2rem;
+            position: relative;
+            z-index: 10;
             width: 100%;
-            max-width: 380px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            color: #0f172a;
-            text-align: center;
-            box-sizing: border-box;
+            max-width: 420px;
+            background: rgba(60, 66, 78, 0.35);
+            backdrop-filter: blur(28px) saturate(180%) brightness(1.15);
+            -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.15);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            box-shadow:
+                0 30px 70px rgba(0, 0, 0, 0.5),
+                0 0 60px rgba(212, 175, 55, 0.15),
+                inset 0 0 60px rgba(255, 255, 255, 0.06);
+            padding: 2.2rem;
+            overflow: hidden;
+            isolation: isolate;
         }
 
-        /* Sizing and subtle drop shadow for the logo */
-        .login-logo {
-            max-width: 160px;
-            height: auto;
+        /* Gradient border highlight on the glass edge */
+        .login-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.5) 0%,
+                rgba(212, 175, 55, 0.25) 40%,
+                transparent 75%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .brand-logo {
+            height: 110px;
+            width: auto;
             object-fit: contain;
-            margin-bottom: 0.5rem;
-            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
+            margin-bottom: 0.75rem;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
         }
 
-        .subtitle {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin: 0 0 1.8rem 0;
+        /* ============================================
+           ALL TEXT INSIDE THE CARD IS WHITE
+           ============================================ */
+        .login-card,
+        .login-card p,
+        .login-card span,
+        .login-card label,
+        .login-card a,
+        .login-card .text-muted,
+        .login-card .text-dark,
+        .login-card .form-label,
+        .login-card small {
+            color: #ffffff !important;
         }
 
-        .form-group {
-            margin-bottom: 1.2rem;
-            text-align: left;
+        .login-card .text-muted {
+            opacity: 0.8;
         }
 
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
+        .login-card a:hover {
+            color: var(--gold-light) !important;
+        }
+
+        .form-label {
             font-weight: 600;
-            color: #1e293b;
+            font-size: 0.9rem;
             margin-bottom: 0.4rem;
+            color: #ffffff !important;
         }
 
-        .login-card input[type="text"],
-        .login-card input[type="email"],
-        .login-card input[type="password"] {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            background-color: #f8fafc;
-            color: #0f172a;
-            box-sizing: border-box;
-            font-size: 0.95rem;
-            outline: none;
+        /* Glass inputs */
+        .form-control {
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             transition: all 0.2s ease;
         }
 
-        .login-card input:focus {
-            border-color: #1e3a8a;
-            background-color: #ffffff;
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.55);
         }
 
-        /* Navy Blue Primary Button with Accent Focus */
-        .login-card button {
-            width: 100%;
-            padding: 0.85rem;
-            background-color: #0f172a;
+        .form-control:focus {
+            border-color: #d4af37;
+            background-color: rgba(255, 255, 255, 0.15);
             color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Gold gradient button */
+        .btn-signin {
+            background: linear-gradient(135deg, #c9a227 0%, #a67c0a 50%, #7a5b0a 100%);
+            color: #ffffff;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 0.75rem;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 0.5rem;
-            transition: background-color 0.2s ease, transform 0.1s ease;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
         }
 
-        .login-card button:hover {
-            background-color: #1e3a8a;
+        .btn-signin:hover {
+            background: linear-gradient(135deg, #a67c0a 0%, #7a5b0a 50%, #5c4308 100%);
             transform: translateY(-1px);
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
         }
 
-        .links-container {
-            margin-top: 1.5rem;
-            font-size: 0.875rem;
-            color: #64748b;
+        /* Show/Hide password toggle */
+        .password-container {
+            position: relative;
         }
 
-        .links-container a,
-        .forgot-link {
-            color: #1e3a8a;
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
             font-weight: 600;
-            text-decoration: none;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
         }
 
-        .links-container a:hover,
-        .forgot-link:hover {
-            text-decoration: underline;
+        .toggle-password:hover {
+            color: #ffffff;
+        }
+
+        /* Error alert adjustments */
+        .login-card .alert-danger {
+            background: rgba(220, 38, 38, 0.2);
+            border: 1px solid rgba(220, 38, 38, 0.4);
+            color: #fecaca;
+        }
+
+        /* Responsive */
+        @media (max-width: 991.98px) {
+            .login-wrapper {
+                flex-direction: column;
+                justify-content: center;
+                padding: 2rem 1rem;
+                overflow-y: auto;
+            }
+            .left-brand-section {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+            .court-title {
+                font-size: 2.2rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="login-card">
-        <!-- Logo Header -->
-        <div>
-            <img src="{{ url_for('static', filename='images/logo.png') }}" 
-                 alt="EBC Esguerra Badminton Court Logo" 
-                 class="login-logo"
-                 onerror="this.onerror=null; this.src='/static/image/logo.png';">
-            <p class="subtitle">Sign in to access court bookings & pro shop</p>
+    <div class="login-wrapper">
+        <!-- Fullscreen Background Slideshow (4 Pictures) -->
+        <div class="hero-bg-slide active" style="background-image: url('{{ url_for('static', filename='images/pic1.jpg') }}');"></div>
+        <div class="hero-bg-slide" style="background-image: url('{{ url_for('static', filename='images/pic2.jpg') }}');"></div>
+        <div class="hero-bg-slide" style="background-image: url('{{ url_for('static', filename='images/pic3.jpg') }}');"></div>
+        <div class="hero-bg-slide" style="background-image: url('{{ url_for('static', filename='images/pic4.jpg') }}');"></div>
+        
+        <div class="hero-overlay"></div>
+
+        <!-- Left Side Court Header / Branding -->
+        <div class="left-brand-section">
+            <h1 class="court-title">
+                Esguerra <br>
+                <span class="text-gold-gradient">Badminton Court</span>
+            </h1>
+            <p class="court-subtitle">Reserve your court, check schedules, and order pro shop gear online.</p>
         </div>
 
-        {% if error %}
-            <p style="color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; padding: 0.6rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.2rem;">
-                {{ error }}
-            </p>
-        {% endif %}
-
-        <form action="/login" method="POST">
-            <div class="form-group">
-                <label>Email Address</label>
-                <input type="text" name="email" placeholder="enter email address" required>
+        <!-- Right Side Floating Glass Login Card -->
+        <div class="login-card">
+            
+            <div class="text-center mb-3">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" 
+                     alt="EBC Logo" 
+                     class="brand-logo"
+                     onerror="this.onerror=null; this.src='/static/image/logo.png';">
+                <p class="fw-semibold small mb-0" style="opacity: 0.85;">Sign in to access court bookings & pro shop</p>
             </div>
 
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" placeholder="••••••••" required>
+            {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show mb-3 rounded-3 border-0 py-2 small text-center" role="alert">
+                    <i class="bi bi-exclamation-circle-fill me-1"></i> {{ error }}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+
+            <form action="{{ url_for('auth.login') }}" method="POST">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="text" id="email" name="email" class="form-control" placeholder="enter email address" required autofocus>
+                </div>
+
+                <div class="mb-2">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="password" name="password" class="form-control pe-5" placeholder="••••••••" required>
+                        <button type="button" id="togglePasswordBtn" class="toggle-password">Show</button>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mb-4">
+                    <a href="{{ url_for('auth.forgot_password') }}" class="text-decoration-none small fw-semibold">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn btn-signin w-100 mb-3 shadow-sm">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="text-center mt-2">
+                <span class="small">Don't have an account?</span> 
+                <a href="{{ url_for('auth.signup') }}" class="fw-bold text-decoration-none small">Sign Up</a>
             </div>
 
-            <div style="text-align: right; margin-bottom: 1rem;">
-                <a href="/forgot-password" class="forgot-link" style="font-size: 0.8rem; font-weight: 500;">Forgot Password?</a>
-            </div>
-
-            <button type="submit">Sign In</button>
-        </form>
-
-        <div class="links-container">
-            Don't have an account? <a href="/signup">Sign Up</a>
         </div>
     </div>
 
+    <!-- Bootstrap 5 JS Bundle, Password Toggle & Slideshow Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const passwordInput = document.getElementById('password');
+        const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+
+        togglePasswordBtn.addEventListener('click', function () {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                togglePasswordBtn.textContent = 'Hide';
+            } else {
+                passwordInput.type = 'password';
+                togglePasswordBtn.textContent = 'Show';
+            }
+        });
+
+        const slides = document.querySelectorAll('.hero-bg-slide');
+        let currentSlide = 0;
+
+        function nextSlide() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+
+        if (slides.length > 0) {
+            setInterval(nextSlide, 4000);
+        }
+    </script>
 </body>
 </html>

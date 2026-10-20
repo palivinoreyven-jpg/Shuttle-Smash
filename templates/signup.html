@@ -3,212 +3,387 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - EBC Badminton Court</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Sign Up - Esguerra Badminton Court</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        /* 1. Background Setup: Deep Black & Navy with Light Beam Ray */
-        body {
-            background: 
-                linear-gradient(
-                    225deg, 
-                    rgba(254, 240, 138, 0.85) 0%,   /* Bright yellow source */
-                    rgba(234, 179, 8, 0.35) 18%,    /* Golden beam */
-                    rgba(254, 240, 138, 0.12) 35%,   /* Soft edge */
-                    transparent 50%
-                ),
-                radial-gradient(
-                    circle at 90% 10%, 
-                    rgba(254, 240, 138, 0.6) 0%, 
-                    rgba(234, 179, 8, 0.2) 25%, 
-                    transparent 60%
-                ),
-                linear-gradient(
-                    135deg, 
-                    #0a192f 0%, 
-                    #020617 50%, 
-                    #000000 100%
-                );
-            background-attachment: fixed;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        :root {
+            --gold-primary: #d4af37;
+            --gold-light: #fef08a;
+            --gold-dark: #996515;
+            --gold-gradient: linear-gradient(135deg, #fff099 0%, #d4af37 50%, #aa7c11 100%);
+        }
+
+        body, html {
+            height: 100%;
             margin: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0a0c10;
+            overflow: hidden;
+        }
+
+        .login-wrapper {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            justify-content: center;
+            padding: 1rem;
+            overflow: hidden;
         }
 
-        /* 2. Form Card Styling */
-        .signup-card {
-            border: none;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        /* Fullscreen slideshow background */
+        .hero-bg-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            z-index: 1;
         }
 
-        /* 3. Logo Sizing */
-        .site-logo {
-            height: 70px;
+        .hero-bg-slide.active {
+            opacity: 1;
+        }
+
+        /* Balanced dark overlay */
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 14, 23, 0.72);
+            z-index: 2;
+        }
+
+        /* ============================================
+           GLASS LOGIN CARD
+           ============================================ */
+        .login-card {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 440px;
+            background: rgba(60, 66, 78, 0.35);
+            backdrop-filter: blur(28px) saturate(180%) brightness(1.15);
+            -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.15);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            box-shadow:
+                0 30px 70px rgba(0, 0, 0, 0.5),
+                0 0 60px rgba(212, 175, 55, 0.15),
+                inset 0 0 60px rgba(255, 255, 255, 0.06);
+            padding: 1.8rem 2rem;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        /* Gradient border highlight on the glass edge */
+        .login-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.5) 0%,
+                rgba(212, 175, 55, 0.25) 40%,
+                transparent 75%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .card-header-section {
+            text-align: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding-bottom: 0.75rem;
+        }
+
+        .brand-logo {
+            height: 60px;
             width: auto;
             object-fit: contain;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+            margin-bottom: 0.2rem;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
         }
 
-        /* 4. Navy Blue Primary Theme Modifications */
-        .btn-primary-navy {
-            background-color: #0f172a;
-            border: none;
+        .court-title-dark {
+            font-weight: 800;
+            font-size: 1.45rem;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.1rem;
             color: #ffffff;
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(135deg, #fff6b3 0%, #d4af37 50%, #b8860b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.35));
+        }
+
+        /* ============================================
+           ALL TEXT INSIDE THE CARD IS WHITE
+           ============================================ */
+        .login-card,
+        .login-card p,
+        .login-card span,
+        .login-card label,
+        .login-card a,
+        .login-card .text-muted,
+        .login-card .text-dark,
+        .login-card .form-label,
+        .login-card small {
+            color: #ffffff !important;
+        }
+
+        .login-card .text-muted {
+            opacity: 0.8;
+        }
+
+        .login-card a:hover {
+            color: var(--gold-light) !important;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 0.2rem;
+            color: #ffffff !important;
+        }
+
+        /* Glass inputs */
+        .form-control {
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 9px;
+            padding: 0.5rem 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             transition: all 0.2s ease;
         }
 
-        .btn-primary-navy:hover {
-            background-color: #1e3a8a;
-            color: #ffffff;
-            transform: translateY(-1px);
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.55);
         }
 
-        .text-navy {
-            color: #0f172a !important;
-        }
-
-        .link-navy {
-            color: #1e3a8a;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .link-navy:hover {
-            text-decoration: underline;
-        }
-
-        /* 5. Custom Focus Ring for Inputs */
         .form-control:focus {
-            border-color: #1e3a8a;
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
+            border-color: #d4af37;
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Gold gradient button */
+        .btn-signin {
+            background: linear-gradient(135deg, #c9a227 0%, #a67c0a 50%, #7a5b0a 100%);
+            color: #ffffff;
+            font-weight: 700;
+            border-radius: 9px;
+            padding: 0.65rem;
+            font-size: 0.95rem;
+            border: none;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
+        }
+
+        .btn-signin:hover {
+            background: linear-gradient(135deg, #a67c0a 0%, #7a5b0a 50%, #5c4308 100%);
+            transform: translateY(-1px);
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
+        }
+
+        /* Show/Hide password toggle */
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.75);
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .toggle-password:hover {
+            color: #ffffff;
+        }
+
+        /* Alerts */
+        .login-card .alert-danger {
+            background: rgba(220, 38, 38, 0.25);
+            border: 1px solid rgba(220, 38, 38, 0.45);
+            color: #fecaca;
+        }
+
+        .login-card .alert-warning {
+            background: rgba(234, 179, 8, 0.2);
+            border: 1px solid rgba(234, 179, 8, 0.4);
+            color: #fef3c7;
+        }
+
+        @media (max-width: 576px) {
+            .login-card {
+                padding: 1.25rem 1.5rem;
+                max-width: 100%;
+            }
         }
     </style>
 </head>
-<body class="py-5">
+<body>
 
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
-                <div class="card signup-card p-4 bg-white">
-                    <div class="card-body">
-                        
-                        <!-- Header & Logo -->
-                        <div class="text-center mb-4">
-                            <img src="{{ url_for('static', filename='images/logo.png') }}" 
-                                 alt="EBC Logo" 
-                                 class="site-logo mb-2"
-                                 onerror="this.onerror=null; this.src='/static/image/logo.png';">
-                            
-                            <h4 class="fw-bold text-navy mb-1">Create an Account</h4>
-                            <p class="text-muted small">Join us to book court slots & shop badminton gear</p>
-                        </div>
+    <div class="login-wrapper">
+        <!-- Fullscreen Background Slideshow (4 Pictures) -->
+        <div class="hero-bg-slide active" style="background-image: url('{{ url_for('static', filename='images/pic1.jpg') }}');"></div>
+        <div class="hero-bg-slide" style="background-image: url('{{ url_for('static', filename='images/pic2.jpg') }}');"></div>
+        <div class="hero-bg-slide" style="background-image: url('{{ url_for('static', filename='images/pic3.jpg') }}');"></div>
+        <div class="hero-bg-slide" style="background-image: url('{{ url_for('static', filename='images/pic4.jpg') }}');"></div>
+        
+        <div class="hero-overlay"></div>
 
-                        <!-- Backend Error Alert -->
-                        {% if error %}
-                            <div class="alert alert-danger alert-dismissible fade show small py-2" role="alert">
-                                ⚠️ {{ error }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endif %}
+        <!-- Master Glass Card -->
+        <div class="login-card">
+            
+            <!-- Header with Title & Logo Inside the Card -->
+            <div class="card-header-section">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" 
+                     alt="EBC Logo" 
+                     class="brand-logo"
+                     onerror="this.onerror=null; this.src='/static/image/logo.png';">
+                <h1 class="court-title-dark">
+                    Esguerra <span class="text-gold-gradient">Badminton Court</span>
+                </h1>
+                <p class="fw-semibold small mb-0" style="opacity: 0.8; font-size: 0.78rem;">Create your account to start booking</p>
+            </div>
 
-                        <!-- Client-Side Warning Alert -->
-                        <div id="matchError" class="alert alert-warning small py-2 d-none" role="alert">
-                            ⚠️ Passwords do not match!
-                        </div>
+            {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show mb-2 rounded-3 border-0 py-1 small text-center" role="alert">
+                    <i class="bi bi-exclamation-circle-fill me-1"></i> {{ error }}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
 
-                        <!-- Registration Form -->
-                        <form id="signupForm" action="{{ url_for('signup') }}" method="POST">
-                            
-                            <!-- Full Name Field -->
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-secondary small">Full Name</label>
-                                <input type="text" name="name" class="form-control form-control-lg fs-6" placeholder="Enter your full name" required autofocus>
-                            </div>
+            <div id="matchError" class="alert alert-warning small py-1 d-none rounded-3 border-0 text-center mb-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Passwords do not match!
+            </div>
 
-                            <!-- Email Field -->
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-secondary small">Email Address</label>
-                                <input type="email" name="email" class="form-control form-control-lg fs-6" placeholder="Enter your email address" required>
-                            </div>
+            <!-- Form -->
+            <form id="signupForm" action="{{ url_for('auth.signup') }}" method="POST">
+                <div class="mb-2">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="Enter your full name" required autofocus>
+                </div>
 
-                            <!-- Password Field with Toggle -->
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-secondary small">Password</label>
-                                <div class="input-group">
-                                    <input type="password" id="signupPassword" name="password" class="form-control form-control-lg fs-6" placeholder="••••••••" required>
-                                    <button class="btn btn-outline-secondary px-3" type="button" id="togglePassBtn">
-                                        <span id="passToggleText" class="small fw-bold">Show</span>
-                                    </button>
-                                </div>
-                            </div>
+                <div class="mb-2">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" name="email" class="form-control" placeholder="Enter email address" required>
+                </div>
 
-                            <!-- Confirm Password Field with Toggle -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold text-secondary small">Confirm Password</label>
-                                <div class="input-group">
-                                    <input type="password" id="confirmPassword" class="form-control form-control-lg fs-6" placeholder="••••••••" required>
-                                    <button class="btn btn-outline-secondary px-3" type="button" id="toggleConfirmBtn">
-                                        <span id="confirmToggleText" class="small fw-bold">Show</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Submit Button -->
-                            <button type="submit" class="btn btn-primary-navy btn-lg w-100 fw-bold shadow-sm fs-6 py-2">Create Account</button>
-                        </form>
-
-                        <div class="text-center mt-4">
-                            <p class="small text-muted mb-0">Already have an account? <a href="{{ url_for('login') }}" class="link-navy">Sign In</a></p>
-                        </div>
-
+                <div class="mb-2">
+                    <label class="form-label">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="signupPassword" name="password" class="form-control pe-5" placeholder="••••••••" required>
+                        <button type="button" id="togglePassBtn" class="toggle-password">Show</button>
                     </div>
                 </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Confirm Password</label>
+                    <div class="password-container">
+                        <input type="password" id="confirmPassword" class="form-control pe-5" placeholder="••••••••" required>
+                        <button type="button" id="toggleConfirmBtn" class="toggle-password">Show</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-signin w-100 mb-2 shadow-sm">
+                    Create Account
+                </button>
+            </form>
+
+            <div class="text-center mt-1">
+                <span class="small" style="font-size: 0.8rem; opacity: 0.8;">Already have an account?</span> 
+                <a href="{{ url_for('auth.login') }}" class="fw-bold text-decoration-none small" style="font-size: 0.8rem;">Sign In</a>
             </div>
+
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap 5 JS Bundle, Password Toggle & Slideshow Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const signupForm = document.getElementById('signupForm');
-            const passInput = document.getElementById('signupPassword');
-            const confirmInput = document.getElementById('confirmPassword');
-            const matchError = document.getElementById('matchError');
-
-            const togglePassBtn = document.getElementById('togglePassBtn');
-            const passToggleText = document.getElementById('passToggleText');
-            
-            const toggleConfirmBtn = document.getElementById('toggleConfirmBtn');
-            const confirmToggleText = document.getElementById('confirmToggleText');
-
-            // Password Show/Hide Toggle
-            togglePassBtn.addEventListener('click', function () {
-                const isPass = passInput.getAttribute('type') === 'password';
-                passInput.setAttribute('type', isPass ? 'text' : 'password');
-                passToggleText.textContent = isPass ? 'Hide' : 'Show';
-            });
-
-            // Confirm Password Show/Hide Toggle
-            toggleConfirmBtn.addEventListener('click', function () {
-                const isPass = confirmInput.getAttribute('type') === 'password';
-                confirmInput.setAttribute('type', isPass ? 'text' : 'password');
-                confirmToggleText.textContent = isPass ? 'Hide' : 'Show';
-            });
-
-            // Validate Passwords Match Before Submit
-            signupForm.addEventListener('submit', function (e) {
-                if (passInput.value !== confirmInput.value) {
-                    e.preventDefault();
-                    matchError.classList.remove('d-none');
-                    confirmInput.focus();
-                } else {
-                    matchError.classList.add('d-none');
-                }
-            });
+        // Password toggles
+        const passInput = document.getElementById('signupPassword');
+        const togglePassBtn = document.getElementById('togglePassBtn');
+        togglePassBtn.addEventListener('click', function () {
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                togglePassBtn.textContent = 'Hide';
+            } else {
+                passInput.type = 'password';
+                togglePassBtn.textContent = 'Show';
+            }
         });
+
+        const confirmInput = document.getElementById('confirmPassword');
+        const toggleConfirmBtn = document.getElementById('toggleConfirmBtn');
+        toggleConfirmBtn.addEventListener('click', function () {
+            if (confirmInput.type === 'password') {
+                confirmInput.type = 'text';
+                toggleConfirmBtn.textContent = 'Hide';
+            } else {
+                confirmInput.type = 'password';
+                toggleConfirmBtn.textContent = 'Show';
+            }
+        });
+
+        // Client-side password matching validation
+        const signupForm = document.getElementById('signupForm');
+        const matchError = document.getElementById('matchError');
+        signupForm.addEventListener('submit', function (e) {
+            if (passInput.value !== confirmInput.value) {
+                e.preventDefault();
+                matchError.classList.remove('d-none');
+                confirmInput.focus();
+            } else {
+                matchError.classList.add('d-none');
+            }
+        });
+
+        // Background slideshow
+        const slides = document.querySelectorAll('.hero-bg-slide');
+        let currentSlide = 0;
+        function nextSlide() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+        if (slides.length > 0) {
+            setInterval(nextSlide, 4000);
+        }
     </script>
 </body>
 </html>

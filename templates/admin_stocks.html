@@ -1,411 +1,852 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Management - EBC Badminton</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        (function () {
+            try {
+                const saved = localStorage.getItem('ebc-theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = saved || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-bs-theme', theme);
+                document.documentElement.dataset.ebcTheme = theme;
+            } catch (e) {}
+        })();
+    </script>
+
     <style>
-        :root {
+        :root,
+        html[data-ebc-theme="light"] {
+            --gold-primary: #d4af37;
+            --gold-light: #fef08a;
+            --gold-dark: #996515;
+            --gold-gradient: linear-gradient(135deg, #c9a227 0%, #a67c0a 50%, #7a5b0a 100%);
+            --page-bg-solid: #f1f5f9;
+            --card-bg: #ffffff;
+            --card-border: rgba(226, 232, 240, 0.9);
+            --card-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            --card-backdrop: none;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --text-faint: #94a3b8;
+            --border-color: #e2e8f0;
+            --border-soft: #f1f5f9;
+            --header-bg: rgba(255, 255, 255, 0.72);
+            --header-border: rgba(212, 175, 55, 0.28);
+            --header-backdrop: blur(20px) saturate(180%);
+            --header-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+            --sidebar-width: 260px;
+            --sidebar-bg: rgba(255, 255, 255, 0.72);
+            --sidebar-border: rgba(212, 175, 55, 0.25);
+            --sidebar-backdrop: blur(20px) saturate(180%);
+            --sidebar-shadow: 2px 0 12px rgba(15, 23, 42, 0.06);
             --navy-primary: #0f172a;
             --navy-hover: #1e3a8a;
             --navy-dark: #0a192f;
-            --navy-deep: #020617;
+            --theme-speed: 250ms;
+        }
+
+        html[data-ebc-theme="dark"] {
+            --gold-primary: #d4af37;
+            --gold-light: #fef08a;
+            --gold-dark: #996515;
+            --gold-gradient: linear-gradient(135deg, #fff5b8 0%, #f4d03f 50%, #d4af37 100%);
+            --page-bg-solid: #06080c;
+            --card-bg: rgba(30, 36, 48, 0.45);
+            --card-border: rgba(212, 175, 55, 0.22);
+            --card-shadow: 0 12px 45px rgba(0, 0, 0, 0.55), 0 0 30px rgba(212, 175, 55, 0.06);
+            --card-backdrop: blur(22px) saturate(140%);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-faint: #64748b;
+            --border-color: rgba(212, 175, 55, 0.18);
+            --border-soft: rgba(212, 175, 55, 0.1);
+            --header-bg: rgba(10, 25, 47, 0.55);
+            --header-border: rgba(212, 175, 55, 0.3);
+            --header-backdrop: blur(24px) saturate(180%);
+            --header-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-bg: rgba(10, 12, 16, 0.55);
+            --sidebar-border: rgba(212, 175, 55, 0.25);
+            --sidebar-backdrop: blur(26px) saturate(180%);
+            --sidebar-shadow: 4px 0 30px rgba(0, 0, 0, 0.6);
+            --navy-primary: #0f172a;
+            --navy-hover: #1e3a8a;
+            --navy-dark: #0a192f;
+        }
+
+        * {
+            transition: background-color var(--theme-speed) ease,
+                        color var(--theme-speed) ease,
+                        border-color var(--theme-speed) ease;
         }
 
         body {
-            background-color: #f8fafc;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #334155;
+            background-color: var(--page-bg-solid);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text-secondary);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* 1. Expanded Navigation Bar with Logo */
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed; top: 0; left: 0;
+            width: var(--sidebar-width); height: 100vh;
+            background: var(--sidebar-bg);
+            backdrop-filter: var(--sidebar-backdrop);
+            -webkit-backdrop-filter: var(--sidebar-backdrop);
+            border-right: 1px solid var(--sidebar-border);
+            box-shadow: var(--sidebar-shadow);
+            z-index: 1045; transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; overflow-y: auto;
+        }
+        .sidebar.open { transform: translateX(0); }
+        .sidebar-header { padding: 1.2rem 1rem; border-bottom: 1px solid var(--sidebar-border); display: flex; align-items: center; gap: 0.75rem; }
+        .sidebar-logo { height: 40px; width: auto; object-fit: contain; filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.35)); flex-shrink: 0; }
+        .sidebar-brand-title { font-size: 1rem; font-weight: 800; background: var(--gold-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.15; }
+        .sidebar-brand-sub { font-size: 0.68rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+        .sidebar-nav { padding: 1rem 0.75rem; flex: 1; }
+        .sidebar-section-label { font-size: 0.7rem; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; padding: 0.5rem 0.75rem; margin-top: 0.5rem; }
+        .sidebar-link { display: flex; align-items: center; gap: 0.85rem; padding: 0.75rem 0.9rem; border-radius: 10px; color: var(--text-secondary); font-weight: 600; font-size: 0.92rem; text-decoration: none; margin-bottom: 0.35rem; border: 1px solid transparent; transition: all 0.2s ease; }
+        .sidebar-link i { font-size: 1.05rem; width: 22px; text-align: center; flex-shrink: 0; }
+        html[data-ebc-theme="light"] .sidebar-link:hover { background: rgba(212, 175, 55, 0.12); border-color: rgba(212, 175, 55, 0.4); color: #0f172a; transform: translateX(3px); }
+        html[data-ebc-theme="dark"] .sidebar-link { color: #e2e8f0; }
+        html[data-ebc-theme="dark"] .sidebar-link:hover { background: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 0.35); color: var(--gold-light); transform: translateX(3px); }
+        .sidebar-link.primary { background: var(--gold-gradient); color: #ffffff !important; box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25); margin-bottom: 0.6rem; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); }
+        .sidebar-link.primary:hover { color: #ffffff !important; box-shadow: 0 6px 18px rgba(212, 175, 55, 0.45); transform: translateX(3px); }
+        html[data-ebc-theme="light"] .sidebar-link.danger { color: #b91c1c; }
+        html[data-ebc-theme="light"] .sidebar-link.danger:hover { background: rgba(220, 38, 38, 0.1); border-color: rgba(220, 38, 38, 0.4); color: #7f1d1d; }
+        html[data-ebc-theme="dark"] .sidebar-link.danger { color: #fca5a5; }
+        html[data-ebc-theme="dark"] .sidebar-link.danger:hover { background: rgba(220, 38, 38, 0.15); border-color: rgba(220, 38, 38, 0.5); color: #ffffff; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid var(--sidebar-border); font-size: 0.8rem; color: var(--text-muted); }
+        .sidebar-user-email { color: var(--text-primary); font-weight: 600; word-break: break-all; }
+        .sidebar-backdrop {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+            z-index: 1040; opacity: 0; visibility: hidden; pointer-events: none;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .sidebar-backdrop.show { opacity: 1; visibility: visible; pointer-events: auto; }
+
+        /* NAVBAR */
         .admin-navbar {
-            background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-deep) 100%);
-            padding-top: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--header-bg);
+            backdrop-filter: var(--header-backdrop);
+            -webkit-backdrop-filter: var(--header-backdrop);
+            border-bottom: 1px solid var(--header-border);
+            box-shadow: var(--header-shadow);
+            padding: 0.85rem 0;
+            position: sticky; top: 0; z-index: 1030;
         }
-
-        .admin-nav-logo {
-            height: 52px;
-            width: auto;
-            object-fit: contain;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+        .admin-nav-logo { height: 48px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(234, 179, 8, 0.3)); }
+        .admin-brand-text { font-size: 1.4rem; font-weight: 800; background: var(--gold-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+        html[data-ebc-theme="dark"] .admin-brand-text { filter: drop-shadow(0 0 8px rgba(244, 208, 63, 0.5)); }
+        .brand-badge { font-size: 0.65rem; font-weight: 700; color: var(--gold-primary); border: 1px solid rgba(234, 179, 8, 0.4); background: rgba(234, 179, 8, 0.1); padding: 2px 8px; border-radius: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+        .sidebar-toggle, .theme-toggle {
+            width: 44px; height: 44px; border-radius: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.35rem; transition: all 0.25s ease; flex-shrink: 0; cursor: pointer;
         }
-
-        .admin-brand-text {
-            font-size: 1.35rem;
-            letter-spacing: -0.02em;
+        .theme-toggle { font-size: 1.15rem; position: relative; }
+        html[data-ebc-theme="light"] .sidebar-toggle, html[data-ebc-theme="light"] .theme-toggle {
+            border: 1px solid rgba(212, 175, 55, 0.55); background: rgba(212, 175, 55, 0.12); color: #b48811;
         }
-
-        .nav-link-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #e2e8f0;
-            transition: all 0.2s ease;
+        html[data-ebc-theme="light"] .sidebar-toggle:hover, html[data-ebc-theme="light"] .theme-toggle:hover {
+            background: rgba(212, 175, 55, 0.22); border-color: #b48811; color: #7a5b0a;
+            transform: translateY(-1px); box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
         }
-
-        .nav-link-btn:hover {
-            background: rgba(255, 255, 255, 0.18);
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.25);
+        html[data-ebc-theme="dark"] .sidebar-toggle, html[data-ebc-theme="dark"] .theme-toggle {
+            border: 1px solid rgba(212, 175, 55, 0.45); background: rgba(212, 175, 55, 0.08); color: var(--gold-light);
         }
+        html[data-ebc-theme="dark"] .sidebar-toggle:hover, html[data-ebc-theme="dark"] .theme-toggle:hover {
+            background: rgba(212, 175, 55, 0.2); border-color: #d4af37; color: #ffffff;
+            transform: translateY(-1px); box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+        }
+        .theme-toggle .icon-sun, .theme-toggle .icon-moon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transition: opacity 0.25s ease, transform 0.25s ease; }
+        html[data-ebc-theme="light"] .theme-toggle .icon-sun { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+        html[data-ebc-theme="light"] .theme-toggle .icon-moon { opacity: 1; transform: rotate(0) scale(1); }
+        html[data-ebc-theme="dark"] .theme-toggle .icon-sun { opacity: 1; transform: rotate(0) scale(1); }
+        html[data-ebc-theme="dark"] .theme-toggle .icon-moon { opacity: 0; transform: rotate(90deg) scale(0.6); }
 
-        /* 2. Top Summary Stat Cards */
+        .main-wrapper { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @media (min-width: 992px) { .main-wrapper.shifted { margin-left: var(--sidebar-width); } }
+
+        /* CARDS */
         .stat-card {
-            border: none;
+            border: 1px solid var(--card-border);
             border-radius: 16px;
-            background: #ffffff;
-            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+            background: var(--card-bg);
+            box-shadow: var(--card-shadow);
+            backdrop-filter: var(--card-backdrop);
+            -webkit-backdrop-filter: var(--card-backdrop);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative; isolation: isolate;
         }
+        html[data-ebc-theme="dark"] .stat-card::before, html[data-ebc-theme="dark"] .admin-card::before {
+            content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(212, 175, 55, 0.1) 40%, transparent 70%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            pointer-events: none; z-index: 1;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        html[data-ebc-theme="light"] .stat-card:hover { box-shadow: 0 8px 25px rgba(15, 23, 42, 0.12); }
+        html[data-ebc-theme="dark"] .stat-card:hover { box-shadow: 0 15px 45px rgba(0, 0, 0, 0.6), 0 0 35px rgba(212, 175, 55, 0.12); }
+        .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; }
 
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.35rem;
-        }
-
-        /* 3. Button & Input Customizations */
-        .btn-navy {
-            background-color: var(--navy-primary);
-            border: none;
-            color: #ffffff;
-            transition: all 0.2s ease;
-        }
-
-        .btn-navy:hover {
-            background-color: var(--navy-hover);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
-        }
+        .btn-navy { background-color: var(--navy-primary); border: none; color: #ffffff; transition: all 0.2s ease; }
+        .btn-navy:hover { background-color: var(--navy-hover); color: #ffffff; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25); }
 
         .search-box {
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            background-color: #f8fafc;
+            border-radius: 10px; border: 1px solid var(--border-color);
+            background-color: var(--card-bg); color: var(--text-primary);
+            backdrop-filter: var(--card-backdrop); -webkit-backdrop-filter: var(--card-backdrop);
         }
-
-        .search-box:focus, .form-control:focus, .form-select:focus {
-            background-color: #ffffff;
-            border-color: var(--navy-hover);
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12);
+        .search-box:focus {
+            background-color: var(--card-bg); color: var(--text-primary);
+            border-color: var(--navy-hover); box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12);
         }
+        .search-box::placeholder { color: var(--text-muted); }
 
-        /* 4. Table Customization */
         .admin-card {
-            border: none;
+            border: 1px solid var(--card-border);
             border-radius: 16px;
-            box-shadow: 0 4px 25px rgba(15, 23, 42, 0.06);
-            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            overflow: hidden; background: var(--card-bg);
+            backdrop-filter: var(--card-backdrop); -webkit-backdrop-filter: var(--card-backdrop);
+            position: relative; isolation: isolate;
         }
 
-        .admin-table thead {
-            background-color: var(--navy-primary);
-            color: #ffffff;
+        /* TABLE */
+        .admin-table {
+            --bs-table-color: var(--text-primary);
+            --bs-table-bg: transparent;
+            --bs-table-border-color: var(--border-soft);
+            margin-bottom: 0;
         }
-
+        .admin-table thead { background-color: var(--navy-primary); color: #ffffff; }
+        html[data-ebc-theme="dark"] .admin-table thead { background-color: rgba(10, 12, 16, 0.6); }
         .admin-table th {
-            font-weight: 600;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding-top: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: none;
+            font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;
+            padding-top: 1rem; padding-bottom: 1rem; border-bottom: none; color: #ffffff;
         }
-
         .admin-table td {
-            padding-top: 1rem;
-            padding-bottom: 1rem;
-            border-color: #f1f5f9;
+            padding-top: 1rem; padding-bottom: 1rem;
+            border-color: var(--border-soft);
+            color: var(--text-primary) !important;
+            background: transparent !important;
+        }
+        .admin-table tbody tr { --bs-table-accent-bg: transparent; }
+        .admin-table tbody tr:hover td { background: rgba(212, 175, 55, 0.06) !important; }
+        html[data-ebc-theme="dark"] .admin-table tbody tr:hover td { background: rgba(212, 175, 55, 0.14) !important; }
+        html[data-ebc-theme="dark"] .admin-table tbody td,
+        html[data-ebc-theme="dark"] .admin-table tbody td div,
+        html[data-ebc-theme="dark"] .admin-table tbody td .fw-bold,
+        html[data-ebc-theme="dark"] .admin-table tbody td .fs-6 { color: var(--text-primary) !important; }
+        html[data-ebc-theme="dark"] .admin-table tbody td small,
+        html[data-ebc-theme="dark"] .admin-table tbody td .text-muted { color: var(--text-muted) !important; }
+
+        /* Inactive product row */
+        tr.product-inactive td { opacity: 0.55; }
+        tr.product-inactive:hover td { opacity: 0.75; }
+
+        /* Action buttons — 2-row layout */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 6px;
+            min-width: 240px;
+        }
+        .action-buttons .btn {
+            white-space: nowrap;
+        }
+        .action-buttons .action-row-2 {
+            width: 100%;
+            display: flex;
+            justify-content: center;
         }
 
-        .badge-pill {
-            padding: 0.4em 0.8em;
-            font-weight: 600;
-            border-radius: 30px;
+        .badge-pill { padding: 0.4em 0.8em; font-weight: 600; border-radius: 30px; }
+        .modal-header-navy { background: linear-gradient(135deg, var(--navy-primary) 0%, var(--navy-dark) 100%); color: #ffffff; }
+        .page-title { color: var(--text-primary); }
+        .page-subtitle { color: var(--text-muted); }
+
+        html[data-ebc-theme="dark"] .stat-card .text-muted,
+        html[data-ebc-theme="dark"] .admin-card .text-muted { color: var(--text-muted) !important; }
+        html[data-ebc-theme="dark"] .stat-card h3,
+        html[data-ebc-theme="dark"] .admin-card h4,
+        html[data-ebc-theme="dark"] .admin-card .page-title { color: var(--text-primary) !important; }
+        html[data-ebc-theme="dark"] .admin-card .page-subtitle { color: var(--text-muted) !important; }
+        html[data-ebc-theme="dark"] .input-group-text {
+            background: rgba(255, 255, 255, 0.06) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-muted) !important;
+        }
+        html[data-ebc-theme="dark"] .badge.bg-light {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: var(--text-secondary) !important;
+            border-color: var(--border-color) !important;
         }
 
-        /* 5. Modals */
-        .modal-content {
-            border: none;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        /* MODALS */
+        .modal-content { border: none; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        html[data-ebc-theme="dark"] .modal-content {
+            background: rgba(20, 24, 32, 0.92);
+            backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+            color: var(--text-secondary);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7), 0 0 40px rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.22);
         }
-
-        .modal-header-navy {
-            background: linear-gradient(135deg, var(--navy-primary) 0%, var(--navy-dark) 100%);
+        html[data-ebc-theme="dark"] .modal-body { color: var(--text-secondary); }
+        html[data-ebc-theme="dark"] .modal-body .text-dark { color: var(--text-primary) !important; }
+        html[data-ebc-theme="dark"] .modal-body .text-secondary,
+        html[data-ebc-theme="dark"] .modal-body .text-muted { color: var(--text-muted) !important; }
+        html[data-ebc-theme="dark"] .modal-body .bg-light {
+            background: rgba(255, 255, 255, 0.06) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-secondary) !important;
+        }
+        html[data-ebc-theme="dark"] .modal-body .bg-light .text-dark { color: var(--text-primary) !important; }
+        html[data-ebc-theme="dark"] .modal-body .bg-light .text-muted { color: var(--text-muted) !important; }
+        html[data-ebc-theme="dark"] .modal-footer.bg-light {
+            background: rgba(0, 0, 0, 0.3) !important;
+            border-top: 1px solid var(--border-color) !important;
+        }
+        html[data-ebc-theme="dark"] .modal-body .form-control,
+        html[data-ebc-theme="dark"] .modal-body .form-select {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        html[data-ebc-theme="dark"] .modal-body .form-control::placeholder { color: var(--text-muted); }
+        html[data-ebc-theme="dark"] .modal-body .form-control:focus,
+        html[data-ebc-theme="dark"] .modal-body .form-select:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--gold-primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        }
+        html[data-ebc-theme="dark"] .modal-body .form-label { color: var(--text-muted); }
+        html[data-ebc-theme="dark"] .modal-footer .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+        }
+        html[data-ebc-theme="dark"] .modal-footer .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
             color: #ffffff;
+        }
+
+        /* HARD FORCE vertical-only scroll on scrollable modals */
+        .modal-dialog-scrollable {
+            height: calc(100vh - 1rem) !important;
+            max-height: calc(100vh - 1rem) !important;
+            margin: 0.5rem auto !important;
+        }
+        .modal-dialog-scrollable .modal-content {
+            height: 100% !important;
+            max-height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
+        .modal-dialog-scrollable .modal-header {
+            flex-shrink: 0 !important;
+        }
+        .modal-dialog-scrollable .modal-footer {
+            flex-shrink: 0 !important;
+            position: sticky;
+            bottom: 0;
+            z-index: 5;
+        }
+        .modal-dialog-scrollable .modal-body {
+            flex: 1 1 auto !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
+            min-height: 0 !important;
+        }
+        .modal-dialog-scrollable .modal-body > * {
+            max-width: 100%;
+        }
+        .modal-dialog-scrollable .modal-content > form {
+            display: flex !important;
+            flex-direction: column !important;
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+        html[data-ebc-theme="dark"] .modal-dialog-scrollable .modal-footer {
+            background: rgba(20, 24, 32, 0.98) !important;
+            border-top: 1px solid var(--border-color) !important;
+        }
+
+        /* TIGHTER SPACING INSIDE MODALS */
+        .modal-dialog-scrollable .modal-body .mb-3 {
+            margin-bottom: 0.75rem !important;
+        }
+        .modal-dialog-scrollable .modal-body .form-label {
+            margin-bottom: 0.25rem !important;
+        }
+        .modal-dialog-scrollable .modal-body .form-control,
+        .modal-dialog-scrollable .modal-body .form-select {
+            padding: 0.45rem 0.75rem !important;
+            font-size: 0.9rem !important;
+        }
+        .modal-dialog-scrollable .modal-body textarea {
+            min-height: 55px !important;
+        }
+        .modal-dialog-scrollable .modal-body .form-text,
+        .modal-dialog-scrollable .modal-body small.text-muted {
+            font-size: 0.78rem !important;
+        }
+
+        /* Photo modal image */
+        .photo-modal-img {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
         }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark admin-navbar mb-4 shadow-sm">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand d-flex align-items-center gap-3 fw-bold admin-brand-text" href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" 
-                     alt="EBC Logo" 
-                     class="admin-nav-logo"
-                     onerror="this.onerror=null; this.src='/static/image/logo.png';">
-                <span>EBC Inventory</span>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="appSidebar">
+        <div class="sidebar-header">
+            <img src="{{ url_for('static', filename='images/logo.png') }}"
+                 alt="EBC Logo"
+                 class="sidebar-logo"
+                 onerror="this.onerror=null; this.src='/static/image/logo.png';">
+            <div class="d-flex flex-column">
+                <span class="sidebar-brand-title">Esguerra</span>
+                <span class="sidebar-brand-sub">Badminton Court</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Quick Actions</div>
+
+            <a href="{{ url_for('bookings.index') }}"
+               class="sidebar-link {% if request.endpoint == 'bookings.index' %}primary{% endif %}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
             </a>
 
-            <div class="d-flex align-items-center gap-2 ms-auto">
-                <a href="{{ url_for('index') }}" class="btn btn-sm nav-link-btn px-3 py-2 fw-semibold rounded-3">
-                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
-                </a>
-                <a href="{{ url_for('shop') }}" class="btn btn-sm nav-link-btn px-3 py-2 fw-semibold rounded-3">
-                    <i class="bi bi-shop me-1"></i> Shop View
-                </a>
-                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger px-3 py-2 fw-semibold rounded-3 ms-1" title="Logout">
-                    <i class="bi bi-box-arrow-right"></i>
-                </a>
-            </div>
+            <a href="{{ url_for('bookings.my_bookings') }}"
+               class="sidebar-link {% if request.endpoint == 'bookings.my_bookings' %}primary{% endif %}">
+                <i class="bi bi-calendar-check"></i>
+                <span>My Reservations</span>
+            </a>
+
+            <a href="{{ url_for('shop.my_orders') }}"
+               class="sidebar-link {% if request.endpoint == 'shop.my_orders' %}primary{% endif %}">
+                <i class="bi bi-bag-check"></i>
+                <span>My Orders</span>
+            </a>
+
+            <a href="{{ url_for('shop.shop') }}"
+               class="sidebar-link {% if request.endpoint == 'shop.shop' %}primary{% endif %}">
+                <i class="bi bi-shop"></i>
+                <span>Pro Shop</span>
+            </a>
+
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('admin.admin_stocks') }}"
+               class="sidebar-link {% if request.endpoint == 'admin.admin_stocks' %}primary{% endif %}">
+                <i class="bi bi-boxes"></i>
+                <span>Inventory</span>
+            </a>
+
+            <a href="{{ url_for('admin.blocked_dates_page') }}"
+               class="sidebar-link {% if request.endpoint == 'admin.blocked_dates_page' %}primary{% endif %}">
+                <i class="bi bi-calendar-x"></i>
+                <span>Blocked Dates</span>
+            </a>
+
+            <a href="{{ url_for('admin.payment_settings_page') }}"
+               class="sidebar-link {% if request.endpoint == 'admin.payment_settings_page' %}primary{% endif %}">
+                <i class="bi bi-qr-code"></i>
+                <span>Payment Settings</span>
+            </a>
+            {% endif %}
+
+            <div class="sidebar-section-label">Account</div>
+
+            <a href="#" class="sidebar-link danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="mb-1">Signed in as</div>
+            <div class="sidebar-user-email">{{ session.get('user_email') }}</div>
         </div>
-    </nav>
+    </aside>
 
-    <div class="container-fluid px-4 my-4">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card stat-card p-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted small fw-bold text-uppercase">Total Items</span>
-                            <h3 class="fw-bold text-navy mb-0 mt-1">{{ products|length }}</h3>
-                        </div>
-                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                            <i class="bi bi-box-seam"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card stat-card p-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted small fw-bold text-uppercase">In Stock</span>
-                            <h3 class="fw-bold text-success mb-0 mt-1">
-                                {{ products | selectattr(4, 'gt', 5) | list | length }}
-                            </h3>
-                        </div>
-                        <div class="stat-icon bg-success bg-opacity-10 text-success">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card stat-card p-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted small fw-bold text-uppercase">Low Stock</span>
-                            <h3 class="fw-bold text-warning mb-0 mt-1">
-                                {{ products | selectattr(4, 'gt', 0) | selectattr(4, 'le', 5) | list | length }}
-                            </h3>
-                        </div>
-                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                            <i class="bi bi-exclamation-triangle"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card stat-card p-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted small fw-bold text-uppercase">Out of Stock</span>
-                            <h3 class="fw-bold text-danger mb-0 mt-1">
-                                {{ products | selectattr(4, 'eq', 0) | list | length }}
-                            </h3>
-                        </div>
-                        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
-                            <i class="bi bi-x-circle"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- MAIN -->
+    <div class="main-wrapper" id="mainWrapper">
 
-        <div class="card admin-card p-3 mb-4 bg-white">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                <div>
-                    <h4 class="fw-bold text-dark mb-1">Inventory & Stock Management</h4>
-                    <p class="text-muted small mb-0">Manage court store products, update pricing, and restock levels.</p>
-                </div>
-                
-                <div class="d-flex gap-2">
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" id="searchInput" class="form-control border-start-0 search-box" placeholder="Search product..." onkeyup="filterTable()">
-                    </div>
-                    <button type="button" class="btn btn-navy fw-bold text-nowrap px-3 py-2 rounded-3" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                        <i class="bi bi-plus-circle me-1"></i> Add Product
+        <nav class="navbar admin-navbar mb-4">
+            <div class="container-fluid px-4 d-flex align-items-center justify-content-start">
+                <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                        <i class="bi bi-list"></i>
                     </button>
+                    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle light / dark mode">
+                        <span class="icon-sun"><i class="bi bi-sun-fill"></i></span>
+                        <span class="icon-moon"><i class="bi bi-moon-stars-fill"></i></span>
+                    </button>
+                    <a class="navbar-brand d-flex align-items-center gap-3 text-decoration-none m-0" href="{{ url_for('bookings.index') }}">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}"
+                             alt="EBC Logo"
+                             class="admin-nav-logo"
+                             onerror="this.onerror=null; this.src='/static/image/logo.png';">
+                        <div class="d-flex flex-column">
+                            <span class="admin-brand-text">EBC Badminton</span>
+                            <span class="brand-badge me-auto">Inventory</span>
+                        </div>
+                    </a>
                 </div>
             </div>
-        </div>
+        </nav>
 
-        <div class="card admin-card">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0 admin-table" id="inventoryTable">
-                        <thead>
-                            <tr>
-                                <th class="ps-4">Product Name</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Current Stock</th>
-                                <th class="text-end pe-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for p in products %}
-                            <tr>
-                                <td class="ps-4">
-                                    <div class="fw-bold text-dark fs-6">{{ p[1] }}</div>
-                                    <small class="text-muted">{{ p[5] or 'No description provided' }}</small>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-dark border px-2 py-1">{{ p[2] }}</span>
-                                </td>
-                                <td class="fw-bold text-dark">
-                                    ₱{{ "%.2f"|format(p[3]) }}
-                                </td>
-                                <td>
-                                    {% if p[4] == 0 %}
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle badge-pill">Out of Stock (0)</span>
-                                    {% elif p[4] <= 5 %}
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle badge-pill">Low Stock ({{ p[4] }})</span>
-                                    {% else %}
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle badge-pill">{{ p[4] }} Available</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-end pe-4">
-                                    <div class="btn-group gap-1">
-                                        <button type="button" class="btn btn-outline-success btn-sm fw-semibold rounded-2" data-bs-toggle="modal" data-bs-target="#restockModal{{ p[0] }}">
-                                            <i class="bi bi-box-seam me-1"></i> Restock
-                                        </button>
-                                        
-                                        <button type="button" class="btn btn-outline-primary btn-sm fw-semibold rounded-2" data-bs-toggle="modal" data-bs-target="#editModal{{ p[0] }}">
-                                            <i class="bi bi-pencil-square me-1"></i> Edit
-                                        </button>
+        <div class="container-fluid px-4 my-4">
 
+            <!-- Stat Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-muted small fw-bold text-uppercase">Total Items</span>
+                                <h3 class="fw-bold mb-0 mt-1" style="color: var(--text-primary);">{{ products|length }}</h3>
+                            </div>
+                            <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-muted small fw-bold text-uppercase">In Stock</span>
+                                <h3 class="fw-bold text-success mb-0 mt-1">
+                                    {{ products | selectattr(4, 'gt', 5) | list | length }}
+                                </h3>
+                            </div>
+                            <div class="stat-icon bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-muted small fw-bold text-uppercase">Low Stock</span>
+                                <h3 class="fw-bold text-warning mb-0 mt-1">
+                                    {{ products | selectattr(4, 'gt', 0) | selectattr(4, 'le', 5) | list | length }}
+                                </h3>
+                            </div>
+                            <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-muted small fw-bold text-uppercase">Out of Stock</span>
+                                <h3 class="fw-bold text-danger mb-0 mt-1">
+                                    {{ products | selectattr(4, 'eq', 0) | list | length }}
+                                </h3>
+                            </div>
+                            <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                                <i class="bi bi-x-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header + Add Button -->
+            <div class="card admin-card p-3 mb-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                        <h4 class="fw-bold page-title mb-1">Inventory &amp; Stock Management</h4>
+                        <p class="page-subtitle small mb-0">Manage court store products, update pricing, and restock levels.</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0"><i class="bi bi-search"></i></span>
+                            <input type="text" id="searchInput" class="form-control border-start-0 search-box" placeholder="Search product..." onkeyup="filterTable()">
+                        </div>
+                        <button type="button" class="btn btn-navy fw-bold text-nowrap px-3 py-2 rounded-3" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                            <i class="bi bi-plus-circle me-1"></i> Add Product
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Table -->
+            <div class="card admin-card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle admin-table" id="inventoryTable">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Product Name</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Current Stock</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-4" style="min-width: 260px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in products %}
+                                <tr class="{% if p[6] == 0 %}product-inactive{% endif %}">
+                                    <td class="ps-4">
+                                        <div class="fw-bold fs-6">{{ p[1] }}</div>
+                                        <small class="text-muted">{{ p[5] or 'No description provided' }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border px-2 py-1">{{ p[2] }}</span>
+                                    </td>
+                                    <td class="fw-bold">
+                                        ₱{{ "%.2f"|format(p[3]) }}
+                                    </td>
+                                    <td>
                                         {% if p[4] == 0 %}
-                                            <form action="{{ url_for('delete_product', product_id=p[0]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to permanently delete {{ p[1] }}?');">
-                                                <button type="submit" class="btn btn-outline-danger btn-sm fw-semibold rounded-2">
-                                                    <i class="bi bi-trash me-1"></i> Delete
-                                                </button>
-                                            </form>
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle badge-pill">Out of Stock (0)</span>
+                                        {% elif p[4] <= 5 %}
+                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle badge-pill">Low Stock ({{ p[4] }})</span>
                                         {% else %}
-                                            <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold rounded-2" disabled title="Only products with 0 stock can be removed">
-                                                <i class="bi bi-trash me-1"></i> Delete
-                                            </button>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle badge-pill">{{ p[4] }} Available</span>
                                         {% endif %}
-                                    </div>
+                                    </td>
+                                    <td>
+                                        {% if p[6] == 1 %}
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle badge-pill">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Active
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle badge-pill">
+                                                <i class="bi bi-slash-circle me-1"></i> Inactive
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="action-buttons">
 
-                                    <div class="modal fade text-start" id="restockModal{{ p[0] }}" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header bg-success text-white">
-                                                    <h5 class="modal-title fw-bold"><i class="bi bi-box-seam me-2"></i>Restock {{ p[1] }}</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <form action="{{ url_for('restock_product', product_id=p[0]) }}" method="POST">
-                                                    <div class="modal-body p-4">
-                                                        <div class="p-3 bg-light rounded-3 mb-3 border">
-                                                            <span class="text-muted small">Current Level:</span>
-                                                            <div class="fw-bold fs-5 text-dark">{{ p[4] }} units available</div>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label class="form-label fw-bold small text-secondary">Quantity to Add</label>
-                                                            <input type="number" name="additional_stock" class="form-control form-control-lg fs-6" min="1" value="10" required>
-                                                            <small class="text-muted">This quantity will be added directly to existing stock.</small>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer bg-light">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button type="submit" class="btn btn-success fw-bold">Confirm Restock</button>
-                                                    </div>
-                                                </form>
+                                            <!-- Row 1: Restock | Edit | Deactivate/Activate -->
+                                            <button type="button" class="btn btn-outline-success btn-sm fw-semibold rounded-2" data-bs-toggle="modal" data-bs-target="#restockModal{{ p[0] }}">
+                                                <i class="bi bi-box-seam me-1"></i> Restock
+                                            </button>
+
+                                            <button type="button" class="btn btn-outline-primary btn-sm fw-semibold rounded-2" data-bs-toggle="modal" data-bs-target="#editModal{{ p[0] }}">
+                                                <i class="bi bi-pencil-square me-1"></i> Edit
+                                            </button>
+
+                                            <form action="{{ url_for('admin.toggle_product', product_id=p[0]) }}" method="POST" class="d-inline">
+                                                {% if p[6] == 1 %}
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm fw-semibold rounded-2">
+                                                        <i class="bi bi-slash-circle me-1"></i> Deactivate
+                                                    </button>
+                                                {% else %}
+                                                    <button type="submit" class="btn btn-outline-success btn-sm fw-semibold rounded-2">
+                                                        <i class="bi bi-check-circle me-1"></i> Activate
+                                                    </button>
+                                                {% endif %}
+                                            </form>
+
+                                            <!-- Row 2: View Photo (centered) -->
+                                            <div class="action-row-2">
+                                                {% if p[7] %}
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold rounded-2"
+                                                            data-bs-toggle="modal" data-bs-target="#photoModal{{ p[0] }}"
+                                                            title="View product photo">
+                                                        <i class="bi bi-image me-1"></i> View Photo
+                                                    </button>
+                                                {% else %}
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold rounded-2" disabled
+                                                            title="No photo uploaded for this product">
+                                                        <i class="bi bi-image me-1"></i> View Photo
+                                                    </button>
+                                                {% endif %}
                                             </div>
-                                        </div>
-                                    </div>
 
-                                    <div class="modal fade text-start" id="editModal{{ p[0] }}" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header modal-header-navy">
-                                                    <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Edit Product Details</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <form action="{{ url_for('update_product', product_id=p[0]) }}" method="POST">
-                                                    <div class="modal-body p-4">
-                                                        <div class="mb-3">
-                                                            <label class="form-label fw-bold small text-secondary">Product Name</label>
-                                                            <input type="text" name="name" class="form-control" value="{{ p[1] }}" required>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label class="form-label fw-bold small text-secondary">Unit Price (₱)</label>
-                                                            <input type="number" step="0.01" name="price" class="form-control" value="{{ p[3] }}" required>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label class="form-label fw-bold small text-secondary">Description</label>
-                                                            <textarea name="description" class="form-control" rows="3">{{ p[5] or '' }}</textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer bg-light">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button type="submit" class="btn btn-navy fw-bold">Save Changes</button>
-                                                    </div>
-                                                </form>
-                                            </div>
                                         </div>
-                                    </div>
-
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
-                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
-                                    No products found in your inventory.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                                        No products found in your inventory.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+
+            <!-- ============================================
+                 MODALS (outside table)
+                 ============================================ -->
+            {% for p in products %}
+            <!-- Photo Modal -->
+            <div class="modal fade" id="photoModal{{ p[0] }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header modal-header-navy">
+                            <h5 class="modal-title fw-bold">
+                                <i class="bi bi-image me-2"></i>{{ p[1] }}
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-3 text-center">
+                            {% if p[7] %}
+                                <img src="{{ url_for('static', filename='uploads/products/' ~ p[7]) }}"
+                                     alt="{{ p[1] }}"
+                                     class="photo-modal-img"
+                                     onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\'text-muted py-5\'><i class=\'bi bi-exclamation-triangle fs-1 d-block mb-2\'></i>Image could not be loaded.</div>';">
+                            {% else %}
+                                <div class="text-muted py-5">
+                                    <i class="bi bi-image fs-1 d-block mb-2"></i>
+                                    No photo uploaded for this product.
+                                </div>
+                            {% endif %}
+                            <div class="mt-3">
+                                <span class="badge bg-light text-dark border">{{ p[2] }}</span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">₱{{ "%.2f"|format(p[3]) }}</span>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Restock Modal -->
+            <div class="modal fade" id="restockModal{{ p[0] }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header bg-success text-white">
+                            <h5 class="modal-title fw-bold"><i class="bi bi-box-seam me-2"></i>Restock {{ p[1] }}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form action="{{ url_for('admin.restock_product', product_id=p[0]) }}" method="POST">
+                            <div class="modal-body p-3">
+                                <div class="p-3 bg-light rounded-3 mb-3 border">
+                                    <span class="text-muted small">Current Level:</span>
+                                    <div class="fw-bold fs-5 text-dark">{{ p[4] }} units available</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-secondary">Quantity to Add</label>
+                                    <input type="number" name="additional_stock" class="form-control form-control-lg fs-6" min="1" value="10" required>
+                                    <small class="text-muted">This quantity will be added directly to existing stock.</small>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-success fw-bold">Confirm Restock</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Modal -->
+            <div class="modal fade" id="editModal{{ p[0] }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header modal-header-navy">
+                            <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Edit Product Details</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form action="{{ url_for('admin.update_product', product_id=p[0]) }}" method="POST" enctype="multipart/form-data">
+                            <div class="modal-body p-3">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-secondary">Product Name</label>
+                                    <input type="text" name="name" class="form-control edit-product-name" value="{{ p[1] }}" required>
+                                    <div class="text-danger small mt-1 edit-name-error d-none">
+                                        <i class="bi bi-exclamation-circle-fill me-1"></i>
+                                        You can't save a product that contains numbers only. Please include at least one letter.
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-secondary">Unit Price (₱)</label>
+                                    <input type="number" step="0.01" name="price" class="form-control" value="{{ p[3] }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-secondary">Description</label>
+                                    <textarea name="description" class="form-control" rows="2">{{ p[5] or '' }}</textarea>
+                                </div>
+
+                                <!-- Image Upload (no preview) -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-secondary">Product Photo</label>
+                                    <input type="file" name="image" class="form-control" accept=".png,.jpg,.jpeg,.webp">
+                                    <small class="text-muted">Accepted: PNG, JPG, JPEG, WEBP. Max 7 MB. Leave empty to keep current photo.</small>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-navy fw-bold">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
         </div>
     </div>
 
+    <!-- Add Product Modal -->
     <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header modal-header-navy">
                     <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Add New Product</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <form action="{{ url_for('add_product') }}" method="POST">
-                    <div class="modal-body p-4">
+                <form action="{{ url_for('admin.add_product') }}" method="POST" enctype="multipart/form-data">
+                    <div class="modal-body p-3">
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-secondary">Product Name</label>
-                            <input type="text" name="name" class="form-control" placeholder="e.g. Yonex Arcsaber 11" required>
+                            <input type="text" id="addProductName" name="name" class="form-control" placeholder="e.g. Yonex Arcsaber 11" required>
+                            <div id="addProductNameError" class="text-danger small mt-1 d-none">
+                                <i class="bi bi-exclamation-circle-fill me-1"></i>
+                                You can't add a product that contains numbers only. Please include at least one letter.
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-secondary">Category</label>
@@ -430,6 +871,11 @@
                             <label class="form-label fw-bold small text-secondary">Description</label>
                             <textarea name="description" class="form-control" rows="2" placeholder="Brief product description..."></textarea>
                         </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small text-secondary">Product Photo</label>
+                            <input type="file" name="image" class="form-control" accept=".png,.jpg,.jpeg,.webp">
+                            <small class="text-muted">Accepted: PNG, JPG, JPEG, WEBP. Max 7 MB.</small>
+                        </div>
                     </div>
                     <div class="modal-footer bg-light">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -440,9 +886,42 @@
         </div>
     </div>
 
+    <!-- ============================================
+         LOGOUT CONFIRMATION MODAL
+         ============================================ -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);">
+                    <h5 class="modal-title fw-bold" id="logoutModalLabel">
+                        <i class="bi bi-box-arrow-right me-2"></i>Log out?
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div style="font-size: 3.5rem; color: #dc2626; margin-bottom: 0.75rem;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-primary);">Are you sure you want to log out?</h5>
+                    <p class="text-muted mb-0 small">
+                        You'll need to sign in again to access your reservations, orders, and shop.
+                    </p>
+                </div>
+                <div class="modal-footer bg-light border-0 justify-content-center gap-2 pb-4">
+                    <button type="button" class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </button>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger fw-bold px-4 rounded-3">
+                        <i class="bi bi-box-arrow-right me-1"></i> Yes, Log Out
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        // Live Filter Search for Product Name and Category
         function filterTable() {
             const input = document.getElementById("searchInput");
             const filter = input.value.toLowerCase();
@@ -453,11 +932,9 @@
                 let showRow = false;
                 const tdName = tr[i].getElementsByTagName("td")[0];
                 const tdCategory = tr[i].getElementsByTagName("td")[1];
-                
                 if (tdName || tdCategory) {
                     const nameText = tdName ? tdName.textContent || tdName.innerText : "";
                     const catText = tdCategory ? tdCategory.textContent || tdCategory.innerText : "";
-                    
                     if (nameText.toLowerCase().indexOf(filter) > -1 || catText.toLowerCase().indexOf(filter) > -1) {
                         showRow = true;
                     }
@@ -465,6 +942,95 @@
                 tr[i].style.display = showRow ? "" : "none";
             }
         }
+
+        (function () {
+            const HAS_LETTER = /[A-Za-z]/;
+            const addNameInput = document.getElementById('addProductName');
+            const addNameError = document.getElementById('addProductNameError');
+            if (addNameInput && addNameError) {
+                const addForm = addNameInput.closest('form');
+                addNameInput.addEventListener('input', function () {
+                    const val = addNameInput.value.trim();
+                    if (val && !HAS_LETTER.test(val)) addNameError.classList.remove('d-none');
+                    else addNameError.classList.add('d-none');
+                });
+                addForm.addEventListener('submit', function (e) {
+                    const val = addNameInput.value.trim();
+                    if (!HAS_LETTER.test(val)) {
+                        e.preventDefault();
+                        addNameError.classList.remove('d-none');
+                        addNameInput.focus();
+                    }
+                });
+            }
+            document.querySelectorAll('.edit-product-name').forEach(function (input) {
+                const errorBox = input.parentElement.querySelector('.edit-name-error');
+                const form = input.closest('form');
+                input.addEventListener('input', function () {
+                    const val = input.value.trim();
+                    if (val && !HAS_LETTER.test(val)) errorBox.classList.remove('d-none');
+                    else errorBox.classList.add('d-none');
+                });
+                form.addEventListener('submit', function (e) {
+                    const val = input.value.trim();
+                    if (!HAS_LETTER.test(val)) {
+                        e.preventDefault();
+                        errorBox.classList.remove('d-none');
+                        input.focus();
+                    }
+                });
+            });
+        })();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const sidebar = document.getElementById('appSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const mainWrapper = document.getElementById('mainWrapper');
+            const isDesktop = () => window.matchMedia('(min-width: 992px)').matches;
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                backdrop.classList.add('show');
+                if (isDesktop() && mainWrapper) mainWrapper.classList.add('shifted');
+            }
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                backdrop.classList.remove('show');
+                if (mainWrapper) mainWrapper.classList.remove('shifted');
+            }
+            function toggleSidebar() {
+                if (sidebar.classList.contains('open')) closeSidebar();
+                else openSidebar();
+            }
+            if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
+            if (backdrop) backdrop.addEventListener('click', closeSidebar);
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
+            });
+            window.addEventListener('resize', function () {
+                if (!isDesktop() && mainWrapper) mainWrapper.classList.remove('shifted');
+            });
+        });
+
+        (function () {
+            const themeToggle = document.getElementById('themeToggle');
+            const root = document.documentElement;
+            function applyTheme(theme) {
+                root.setAttribute('data-bs-theme', theme);
+                root.dataset.ebcTheme = theme;
+                try { localStorage.setItem('ebc-theme', theme); } catch (e) {}
+            }
+            function currentTheme() {
+                return root.dataset.ebcTheme || root.getAttribute('data-bs-theme') || 'light';
+            }
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function () {
+                    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+                    applyTheme(next);
+                });
+            }
+        })();
     </script>
 </body>
 </html>

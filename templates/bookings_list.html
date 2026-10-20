@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reservations - EBC Badminton Court</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+    <script>
+        (function () {
+            try {
+                const saved = localStorage.getItem('ebc-theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = saved || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-bs-theme', theme);
+                document.documentElement.dataset.ebcTheme = theme;
+            } catch (e) {}
+        })();
+    </script>
+
+    <style>
+        :root,
+        html[data-ebc-theme="light"] {
+            --gold-primary: #d4af37;
+            --gold-light: #fef08a;
+            --gold-dark: #996515;
+            --gold-gradient: linear-gradient(135deg, #c9a227 0%, #a67c0a 50%, #7a5b0a 100%);
+            --page-bg: linear-gradient(160deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-bg: #ffffff;
+            --card-border: rgba(226, 232, 240, 0.9);
+            --card-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --text-faint: #94a3b8;
+            --border-color: #e2e8f0;
+            --border-soft: #f1f5f9;
+            --header-bg: rgba(255, 255, 255, 0.72);
+            --header-border: rgba(212, 175, 55, 0.28);
+            --header-backdrop: blur(20px) saturate(180%);
+            --header-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+            --sidebar-width: 260px;
+            --sidebar-bg: rgba(255, 255, 255, 0.72);
+            --sidebar-border: rgba(212, 175, 55, 0.25);
+            --sidebar-backdrop: blur(20px) saturate(180%);
+            --sidebar-shadow: 2px 0 12px rgba(15, 23, 42, 0.06);
+            --amount-color: #059669;
+            --theme-speed: 250ms;
+        }
+
+        html[data-ebc-theme="dark"] {
+            --gold-primary: #d4af37;
+            --gold-light: #fef08a;
+            --gold-dark: #996515;
+            --gold-gradient: linear-gradient(135deg, #fff5b8 0%, #f4d03f 50%, #d4af37 100%);
+            --page-bg:
+                radial-gradient(circle at 15% 0%, rgba(212, 175, 55, 0.18) 0%, transparent 50%),
+                radial-gradient(circle at 85% 100%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at top center, #1a1e29 0%, #06080c 100%);
+            --card-bg: rgba(30, 36, 48, 0.45);
+            --card-border: rgba(212, 175, 55, 0.22);
+            --card-shadow: 0 12px 45px rgba(0, 0, 0, 0.55), 0 0 30px rgba(212, 175, 55, 0.06);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-faint: #64748b;
+            --border-color: rgba(212, 175, 55, 0.18);
+            --border-soft: rgba(212, 175, 55, 0.1);
+            --header-bg: rgba(10, 25, 47, 0.55);
+            --header-border: rgba(212, 175, 55, 0.3);
+            --header-backdrop: blur(24px) saturate(180%);
+            --header-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-bg: rgba(10, 12, 16, 0.55);
+            --sidebar-border: rgba(212, 175, 55, 0.25);
+            --sidebar-backdrop: blur(26px) saturate(180%);
+            --sidebar-shadow: 4px 0 30px rgba(0, 0, 0, 0.6);
+            --amount-color: #4ade80;
+        }
+
+        * {
+            transition: background-color var(--theme-speed) ease,
+                        color var(--theme-speed) ease,
+                        border-color var(--theme-speed) ease;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--page-bg);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--text-secondary);
+            overflow-x: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed; top: 0; left: 0;
+            width: var(--sidebar-width); height: 100vh;
+            background: var(--sidebar-bg);
+            backdrop-filter: var(--sidebar-backdrop);
+            -webkit-backdrop-filter: var(--sidebar-backdrop);
+            border-right: 1px solid var(--sidebar-border);
+            box-shadow: var(--sidebar-shadow);
+            z-index: 1045; transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; overflow-y: auto;
+        }
+        .sidebar.open { transform: translateX(0); }
+        .sidebar-header { padding: 1.2rem 1rem; border-bottom: 1px solid var(--sidebar-border); display: flex; align-items: center; gap: 0.75rem; }
+        .sidebar-logo { height: 40px; width: auto; object-fit: contain; filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.35)); flex-shrink: 0; }
+        .sidebar-brand-title { font-size: 1rem; font-weight: 800; background: var(--gold-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.15; }
+        .sidebar-brand-sub { font-size: 0.68rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+        .sidebar-nav { padding: 1rem 0.75rem; flex: 1; }
+        .sidebar-section-label { font-size: 0.7rem; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; padding: 0.5rem 0.75rem; margin-top: 0.5rem; }
+        .sidebar-link { display: flex; align-items: center; gap: 0.85rem; padding: 0.75rem 0.9rem; border-radius: 10px; color: var(--text-secondary); font-weight: 600; font-size: 0.92rem; text-decoration: none; margin-bottom: 0.35rem; border: 1px solid transparent; transition: all 0.2s ease; }
+        .sidebar-link i { font-size: 1.05rem; width: 22px; text-align: center; flex-shrink: 0; }
+        html[data-ebc-theme="light"] .sidebar-link:hover { background: rgba(212, 175, 55, 0.12); border-color: rgba(212, 175, 55, 0.4); color: #0f172a; transform: translateX(3px); }
+        html[data-ebc-theme="dark"] .sidebar-link { color: #e2e8f0; }
+        html[data-ebc-theme="dark"] .sidebar-link:hover { background: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 0.35); color: var(--gold-light); transform: translateX(3px); }
+        .sidebar-link.primary { background: var(--gold-gradient); color: #ffffff !important; box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25); margin-bottom: 0.6rem; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); }
+        .sidebar-link.primary:hover { color: #ffffff !important; box-shadow: 0 6px 18px rgba(212, 175, 55, 0.45); transform: translateX(3px); }
+        html[data-ebc-theme="light"] .sidebar-link.danger { color: #b91c1c; }
+        html[data-ebc-theme="light"] .sidebar-link.danger:hover { background: rgba(220, 38, 38, 0.1); border-color: rgba(220, 38, 38, 0.4); color: #7f1d1d; }
+        html[data-ebc-theme="dark"] .sidebar-link.danger { color: #fca5a5; }
+        html[data-ebc-theme="dark"] .sidebar-link.danger:hover { background: rgba(220, 38, 38, 0.15); border-color: rgba(220, 38, 38, 0.5); color: #ffffff; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid var(--sidebar-border); font-size: 0.8rem; color: var(--text-muted); }
+        .sidebar-user-name {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 0.15rem;
+            word-break: break-word;
+        }
+        .sidebar-user-email {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.75rem;
+            word-break: break-all;
+        }
+        .sidebar-backdrop {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+            z-index: 1040; opacity: 0; visibility: hidden; pointer-events: none;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .sidebar-backdrop.show { opacity: 1; visibility: visible; pointer-events: auto; }
+
+        /* NAVBAR */
+        .custom-navbar {
+            background: var(--header-bg) !important;
+            backdrop-filter: var(--header-backdrop);
+            -webkit-backdrop-filter: var(--header-backdrop);
+            border-bottom: 1px solid var(--header-border);
+            box-shadow: var(--header-shadow);
+            padding-top: 0.8rem; padding-bottom: 0.8rem;
+        }
+        .navbar-logo { height: 52px; width: auto; object-fit: contain; filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.35)); }
+        .brand-title { font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px; background: var(--gold-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        html[data-ebc-theme="dark"] .brand-title { filter: drop-shadow(0 0 8px rgba(244, 208, 63, 0.5)); }
+        .sidebar-toggle, .theme-toggle {
+            width: 44px; height: 44px; border-radius: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.35rem; transition: all 0.25s ease; flex-shrink: 0; cursor: pointer;
+        }
+        .theme-toggle { font-size: 1.15rem; position: relative; }
+        html[data-ebc-theme="light"] .sidebar-toggle, html[data-ebc-theme="light"] .theme-toggle {
+            border: 1px solid rgba(212, 175, 55, 0.55); background: rgba(212, 175, 55, 0.12); color: #b48811;
+        }
+        html[data-ebc-theme="light"] .sidebar-toggle:hover, html[data-ebc-theme="light"] .theme-toggle:hover {
+            background: rgba(212, 175, 55, 0.22); border-color: #b48811; color: #7a5b0a;
+            transform: translateY(-1px); box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+        }
+        html[data-ebc-theme="dark"] .sidebar-toggle, html[data-ebc-theme="dark"] .theme-toggle {
+            border: 1px solid rgba(212, 175, 55, 0.45); background: rgba(212, 175, 55, 0.08); color: var(--gold-light);
+        }
+        html[data-ebc-theme="dark"] .sidebar-toggle:hover, html[data-ebc-theme="dark"] .theme-toggle:hover {
+            background: rgba(212, 175, 55, 0.2); border-color: #d4af37; color: #ffffff;
+            transform: translateY(-1px); box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+        }
+        .theme-toggle .icon-sun, .theme-toggle .icon-moon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transition: opacity 0.25s ease, transform 0.25s ease; }
+        html[data-ebc-theme="light"] .theme-toggle .icon-sun { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+        html[data-ebc-theme="light"] .theme-toggle .icon-moon { opacity: 1; transform: rotate(0) scale(1); }
+        html[data-ebc-theme="dark"] .theme-toggle .icon-sun { opacity: 1; transform: rotate(0) scale(1); }
+        html[data-ebc-theme="dark"] .theme-toggle .icon-moon { opacity: 0; transform: rotate(90deg) scale(0.6); }
+
+        .main-wrapper { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @media (min-width: 992px) { .main-wrapper.shifted { margin-left: var(--sidebar-width); } }
+
+        /* CARDS */
+        .white-card {
+            background: var(--card-bg) !important;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            color: var(--text-secondary);
+            backdrop-filter: var(--card-backdrop);
+            -webkit-backdrop-filter: var(--card-backdrop);
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+        }
+        html[data-ebc-theme="dark"] .white-card {
+            backdrop-filter: blur(22px) saturate(140%);
+            -webkit-backdrop-filter: blur(22px) saturate(140%);
+        }
+        html[data-ebc-theme="dark"] .white-card::before {
+            content: '';
+            position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(212, 175, 55, 0.1) 40%, transparent 70%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            pointer-events: none; z-index: 1;
+        }
+
+        .page-title { color: var(--text-primary); }
+        .page-subtitle { color: var(--text-muted); }
+
+        /* TIMELINE */
+        .timeline-wrapper {
+            position: relative;
+            padding: 20px 10px 8px 10px;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+        .timeline {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            min-width: 100%;
+            position: relative;
+            gap: 0;
+        }
+        .timeline-step {
+            flex: 1;
+            min-width: 110px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .timeline-icon {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            background: #f1f5f9;
+            color: #94a3b8;
+            border: 3px solid #e2e8f0;
+            transition: all 0.35s ease;
+            position: relative;
+            z-index: 2;
+        }
+        .timeline-label { font-size: 0.78rem; font-weight: 700; color: #94a3b8; margin-bottom: 2px; transition: color 0.3s ease; }
+        .timeline-time { font-size: 0.7rem; color: #cbd5e1; font-weight: 500; line-height: 1.3; transition: color 0.3s ease; }
+        .timeline-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: calc(50% + 27px);
+            right: calc(-50% + 27px);
+            height: 3px;
+            background: #e2e8f0;
+            z-index: 0;
+            transition: background 0.35s ease;
+        }
+        /* Remove connector line after the actual last visible step */
+        .timeline-step.timeline-last::after {
+            display: none !important;
+        }
+        .timeline-step.done .timeline-icon { background: #d1fae5; color: #065f46; border-color: #10b981; }
+        .timeline-step.done .timeline-label { color: #065f46; }
+        .timeline-step.done .timeline-time { color: #64748b; }
+        .timeline-step.done:not(:last-child)::after { background: #10b981; }
+        .timeline-step.current .timeline-icon {
+            background: #fef3c7; color: #92400e; border-color: #f59e0b;
+            animation: pulse-step 1.8s ease-in-out infinite;
+        }
+        .timeline-step.current .timeline-label { color: #92400e; }
+        .timeline-step.current .timeline-time { color: #92400e; }
+        @keyframes pulse-step {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5); }
+            50% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+        }
+        .timeline-step.rejected .timeline-icon { background: #fee2e2; color: #7f1d1d; border-color: #dc2626; }
+        .timeline-step.rejected .timeline-label { color: #7f1d1d; }
+        .timeline-step.rejected .timeline-time { color: #991b1b; }
+        .timeline-step.rejected:not(:last-child)::after { background: #fecaca; }
+        .timeline-step.pending .timeline-icon { background: #f8fafc; color: #cbd5e1; border-color: #e2e8f0; }
+
+        html[data-ebc-theme="dark"] .timeline-icon { background: rgba(255, 255, 255, 0.06); color: #64748b; border-color: rgba(255, 255, 255, 0.1); }
+        html[data-ebc-theme="dark"] .timeline-label { color: #64748b; }
+        html[data-ebc-theme="dark"] .timeline-time { color: #475569; }
+        html[data-ebc-theme="dark"] .timeline-step:not(:last-child)::after { background: rgba(255, 255, 255, 0.1); }
+        html[data-ebc-theme="dark"] .timeline-step.done .timeline-icon { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border-color: #10b981; }
+        html[data-ebc-theme="dark"] .timeline-step.done .timeline-label { color: #6ee7b7; }
+        html[data-ebc-theme="dark"] .timeline-step.done .timeline-time { color: #94a3b8; }
+        html[data-ebc-theme="dark"] .timeline-step.done:not(:last-child)::after { background: #10b981; }
+        html[data-ebc-theme="dark"] .timeline-step.current .timeline-icon { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: #f59e0b; }
+        html[data-ebc-theme="dark"] .timeline-step.current .timeline-label,
+        html[data-ebc-theme="dark"] .timeline-step.current .timeline-time { color: #fbbf24; }
+        html[data-ebc-theme="dark"] .timeline-step.rejected .timeline-icon { background: rgba(220, 38, 38, 0.2); color: #fca5a5; border-color: #dc2626; }
+        html[data-ebc-theme="dark"] .timeline-step.rejected .timeline-label { color: #fca5a5; }
+        html[data-ebc-theme="dark"] .timeline-step.rejected .timeline-time { color: #f87171; }
+
+        @media (max-width: 575.98px) {
+            .timeline { flex-direction: column; align-items: flex-start; gap: 14px; min-width: auto; }
+            .timeline-step { display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0; text-align: left; }
+            .timeline-icon { margin: 0; flex-shrink: 0; width: 42px; height: 42px; font-size: 1rem; }
+            .timeline-step > div:not(.timeline-icon) { display: flex; flex-direction: column; }
+            .timeline-step:not(:last-child)::after {
+                top: auto; left: 21px; right: auto; bottom: -14px;
+                width: 3px; height: 14px;
+            }
+        }
+
+        /* RESERVATION CARDS */
+        .booking-card { padding: 1.25rem 1.4rem; margin-bottom: 1rem; }
+        .booking-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; padding-bottom: 0.85rem; border-bottom: 1px dashed var(--border-soft); margin-bottom: 0.5rem; }
+        .booking-ref { font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.15rem; }
+        .booking-sub { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+        .booking-meta { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; padding: 0.75rem 0; font-size: 0.88rem; }
+        .booking-meta-item { display: flex; flex-direction: column; }
+        .booking-meta-label { font-size: 0.68rem; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+        .booking-meta-value { font-weight: 700; color: var(--text-primary); }
+        .booking-meta-value.mono { font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace; font-size: 0.85rem; }
+        .booking-meta-value.amount { color: var(--amount-color); }
+        .booking-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; padding-top: 0.75rem; border-top: 1px dashed var(--border-soft); }
+        .badge-status { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.4em 0.85em; border-radius: 20px; }
+        .section-heading { font-size: 0.75rem; font-weight: 800; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.25rem; }
+        .empty-state { padding: 60px 20px; text-align: center; color: var(--text-muted); }
+        .empty-state i { font-size: 3.5rem; color: var(--text-faint); display: block; margin-bottom: 1rem; }
+
+        /* PAGINATION */
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border-soft);
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .pagination-bar .page-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .pagination-bar .pagination { margin: 0; }
+        .pagination .page-link {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.35rem 0.7rem;
+        }
+        .pagination .page-link:hover {
+            background: rgba(212, 175, 55, 0.12);
+            border-color: rgba(212, 175, 55, 0.5);
+            color: var(--text-primary);
+        }
+        .pagination .page-item.active .page-link {
+            background: var(--gold-gradient);
+            border-color: var(--gold-primary);
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        }
+        .pagination .page-item.disabled .page-link {
+            background: transparent;
+            border-color: var(--border-soft);
+            color: var(--text-faint);
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="appSidebar">
+        <div class="sidebar-header">
+            <img src="{{ url_for('static', filename='images/logo.png') }}"
+                 alt="EBC Logo"
+                 class="sidebar-logo"
+                 onerror="this.onerror=null; this.src='/static/image/logo.png';">
+            <div class="d-flex flex-column">
+                <span class="sidebar-brand-title">Esguerra</span>
+                <span class="sidebar-brand-sub">Badminton Court</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Quick Actions</div>
+
+            <a href="{{ url_for('bookings.index') }}"
+               class="sidebar-link {% if request.endpoint == 'bookings.index' %}primary{% endif %}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="{{ url_for('bookings.my_bookings') }}"
+               class="sidebar-link {% if request.endpoint == 'bookings.my_bookings' %}primary{% endif %}">
+                <i class="bi bi-calendar-check"></i>
+                <span>My Reservations</span>
+            </a>
+
+            <a href="{{ url_for('shop.my_orders') }}"
+               class="sidebar-link {% if request.endpoint == 'shop.my_orders' %}primary{% endif %}">
+                <i class="bi bi-bag-check"></i>
+                <span>My Orders</span>
+            </a>
+
+            <a href="{{ url_for('shop.shop') }}"
+               class="sidebar-link {% if request.endpoint == 'shop.shop' %}primary{% endif %}">
+                <i class="bi bi-shop"></i>
+                <span>Pro Shop</span>
+            </a>
+
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('admin.admin_stocks') }}"
+               class="sidebar-link {% if request.endpoint == 'admin.admin_stocks' %}primary{% endif %}">
+                <i class="bi bi-boxes"></i>
+                <span>Inventory</span>
+            </a>
+
+            <a href="{{ url_for('admin.blocked_dates_page') }}"
+               class="sidebar-link {% if request.endpoint == 'admin.blocked_dates_page' %}primary{% endif %}">
+                <i class="bi bi-calendar-x"></i>
+                <span>Blocked Dates</span>
+            </a>
+
+            <a href="{{ url_for('admin.payment_settings_page') }}"
+               class="sidebar-link {% if request.endpoint == 'admin.payment_settings_page' %}primary{% endif %}">
+                <i class="bi bi-qr-code"></i>
+                <span>Payment Settings</span>
+            </a>
+            {% endif %}
+
+            <div class="sidebar-section-label">Account</div>
+
+            <a href="#" class="sidebar-link danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user-name">{{ session.get('user_name') or 'User' }}</div>
+            <div class="sidebar-user-email">{{ session.get('user_email') }}</div>
+        </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+        <!-- MAIN -->
+    <div class="main-wrapper" id="mainWrapper">
+
+        <nav class="navbar navbar-expand-lg sticky-top custom-navbar">
+            <div class="container-fluid px-3 px-lg-4 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <button type="button" class="sidebar-toggle me-2" id="sidebarToggle" aria-label="Toggle sidebar">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <button type="button" class="theme-toggle me-3" id="themeToggle" aria-label="Toggle theme" title="Toggle light / dark mode">
+                        <span class="icon-sun"><i class="bi bi-sun-fill"></i></span>
+                        <span class="icon-moon"><i class="bi bi-moon-stars-fill"></i></span>
+                    </button>
+                    <a class="navbar-brand d-flex align-items-center gap-3 m-0" href="{{ url_for('bookings.index') }}">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}"
+                             alt="EBC Logo"
+                             class="navbar-logo"
+                             onerror="this.onerror=null; this.src='/static/image/logo.png';">
+                        <span class="brand-title">Esguerra Badminton Court</span>
+                    </a>
+                </div>
+
+                <a href="{{ url_for('bookings.new_booking') }}" class="btn btn-sm text-nowrap fw-bold"
+                   style="background: var(--gold-gradient); color: #ffffff; border-radius: 10px; padding: 0.55rem 1.1rem; border: none; text-shadow: 0 1px 2px rgba(0,0,0,0.25); box-shadow: 0 4px 12px rgba(212,175,55,0.25);">
+                    <i class="bi bi-plus-circle me-1"></i> New Reservation
+                </a>
+            </div>
+        </nav>
+
+        <div class="container py-4 mb-5">
+
+            <!-- Header -->
+            <div class="white-card p-4 mb-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <h4 class="fw-bold page-title mb-1">
+                            <i class="bi bi-calendar-check me-2" style="color: var(--gold-primary);"></i>
+                            {% if is_admin %}Active Court Reservations{% else %}My Reservations{% endif %}
+                        </h4>
+                        <p class="page-subtitle small mb-0">
+                            {% if is_admin %}
+                                All active court reservations across all customers.
+                            {% else %}
+                                Your court reservations and history.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================
+                 ACTIVE RESERVATIONS
+                 ============================================ -->
+            {% if active_bookings %}
+            <div class="section-heading">Active Reservations ({{ active_bookings|length }} on this page)</div>
+
+            {% for b in active_bookings %}
+            <div class="white-card booking-card">
+
+                <div class="booking-card-header">
+                    <div>
+                        <div class="booking-ref">Reservation #{{ b[0] }}</div>
+                        <div class="booking-sub">
+                            <i class="bi bi-person me-1"></i>{{ b[1] }}
+                            {% if b[2] %} · <i class="bi bi-envelope me-1"></i>{{ b[2] }}{% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        {% if b[9] == 'Verified' %}
+                            <span class="badge-status bg-success-subtle text-success border border-success-subtle">
+                                <i class="bi bi-check-circle-fill me-1"></i> Verified
+                            </span>
+                        {% elif b[9] == 'Pending Verification' %}
+                            <span class="badge-status bg-info-subtle text-info-emphasis border border-info-subtle">
+                                <i class="bi bi-hourglass-split me-1"></i> Pending Verification
+                            </span>
+                        {% elif b[9] == 'Rejected' %}
+                            <span class="badge-status bg-danger-subtle text-danger border border-danger-subtle">
+                                <i class="bi bi-x-octagon-fill me-1"></i> Rejected
+                            </span>
+                        {% elif b[9] == 'Cancelled' %}
+                            <span class="badge-status bg-danger-subtle text-danger border border-danger-subtle">
+                                <i class="bi bi-x-circle-fill me-1"></i> Cancelled
+                            </span>
+                        {% elif b[9] != 'Completed' %}
+                            <span class="badge-status bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                                <i class="bi bi-hourglass-split me-1"></i> {{ b[9] }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="booking-meta">
+                    <div class="booking-meta-item">
+                        <span class="booking-meta-label">Court</span>
+                        <span class="booking-meta-value">Court {{ b[4] }}</span>
+                    </div>
+                    <div class="booking-meta-item">
+                        <span class="booking-meta-label">Date</span>
+                        <span class="booking-meta-value mono">{{ b[5] }}</span>
+                    </div>
+                    <div class="booking-meta-item">
+                        <span class="booking-meta-label">Time</span>
+                        <span class="booking-meta-value mono">{{ b[6] }}</span>
+                    </div>
+                    <div class="booking-meta-item">
+                        <span class="booking-meta-label">Duration</span>
+                        <span class="booking-meta-value">{{ b[7] }} hr(s)</span>
+                    </div>
+                    <div class="booking-meta-item">
+                        <span class="booking-meta-label">Total</span>
+                        <span class="booking-meta-value amount">₱{{ "%.2f"|format(b[8]) }}</span>
+                    </div>
+                    <div class="booking-meta-item">
+                        <span class="booking-meta-label">Contact</span>
+                        <span class="booking-meta-value mono">{{ b[3] }}</span>
+                    </div>
+                </div>
+
+                <!-- INLINE TIMELINE -->
+                <div class="timeline-wrapper">
+                    <div class="timeline">
+
+                        <div class="timeline-step done">
+                            <div class="timeline-icon"><i class="bi bi-calendar-plus"></i></div>
+                            <div class="timeline-label">Reserved</div>
+                            <div class="timeline-time">{{ b[5] }}</div>
+                        </div>
+
+                        {% if b[9] in ('Pending Verification', 'Pending') %}
+                        <div class="timeline-step current">
+                            <div class="timeline-icon"><i class="bi bi-credit-card"></i></div>
+                            <div class="timeline-label">Payment</div>
+                            <div class="timeline-time">Awaiting verification</div>
+                        </div>
+                        {% elif b[9] in ('Verified', 'Completed') %}
+                        <div class="timeline-step done">
+                            <div class="timeline-icon"><i class="bi bi-credit-card"></i></div>
+                            <div class="timeline-label">Payment</div>
+                            <div class="timeline-time">Received</div>
+                        </div>
+                        {% elif b[9] in ('Rejected', 'Cancelled') %}
+                        <div class="timeline-step rejected">
+                            <div class="timeline-icon"><i class="bi bi-x-octagon-fill"></i></div>
+                            <div class="timeline-label">{{ b[9] }}</div>
+                            <div class="timeline-time">Not approved</div>
+                        </div>
+                        {% endif %}
+
+                        {% if b[9] in ('Verified', 'Completed') %}
+                        <div class="timeline-step done timeline-last">
+                            <div class="timeline-icon"><i class="bi bi-patch-check-fill"></i></div>
+                            <div class="timeline-label">Verified</div>
+                            <div class="timeline-time">Receipt ready</div>
+                        </div>
+                        {% elif b[9] in ('Rejected', 'Cancelled') %}
+                        <div class="timeline-step rejected timeline-last">
+                            <div class="timeline-icon"><i class="bi bi-x-octagon-fill"></i></div>
+                            <div class="timeline-label">Rejected</div>
+                            <div class="timeline-time">Not approved</div>
+                        </div>
+                        {% else %}
+                        <div class="timeline-step pending timeline-last">
+                            <div class="timeline-icon"><i class="bi bi-patch-check"></i></div>
+                            <div class="timeline-label">Verified</div>
+                            <div class="timeline-time">Pending</div>
+                        </div>
+                        {% endif %}
+
+                        {% if b[9] == 'Completed' %}
+                        <div class="timeline-step done d-none">
+                            <div class="timeline-icon"><i class="bi bi-star-fill"></i></div>
+                            <div class="timeline-label">Completed</div>
+                            <div class="timeline-time">Thank you!</div>
+                        </div>
+                        {% elif b[9] in ('Rejected', 'Cancelled') %}
+                        <div class="timeline-step rejected d-none">
+                            <div class="timeline-icon"><i class="bi bi-x-circle-fill"></i></div>
+                            <div class="timeline-label">Ended</div>
+                            <div class="timeline-time">—</div>
+                        </div>
+                        {% else %}
+                        <div class="timeline-step pending d-none">
+                            <div class="timeline-icon"><i class="bi bi-star"></i></div>
+                            <div class="timeline-label">Completed</div>
+                            <div class="timeline-time">Pending</div>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <div class="booking-actions">
+                    <a href="{{ url_for('bookings.view_receipt', transaction_id=b[0]) }}?type=booking"
+                       class="btn btn-sm btn-outline-warning fw-bold">
+                        <i class="bi bi-receipt me-1"></i>
+                        {% if b[9] == 'Verified' or b[9] == 'Completed' %}Receipt{% else %}Summary{% endif %}
+                    </a>
+
+                    {% if is_admin %}
+                        {% if b[9] == 'Pending Verification' and b[10] %}
+                            <a href="{{ url_for('admin.view_payment_proof', booking_id=b[0]) }}"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-info fw-bold">
+                                <i class="bi bi-image me-1"></i> View Proof
+                            </a>
+                            <form action="{{ url_for('admin.verify_payment', booking_id=b[0]) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success fw-bold">
+                                    <i class="bi bi-check-lg me-1"></i> Verify Payment
+                                </button>
+                            </form>
+                            <form action="{{ url_for('admin.reject_payment', booking_id=b[0]) }}" method="POST" class="d-inline"
+                                  onsubmit="return confirm('Reject this payment proof? The reservation will be cancelled.');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">
+                                    <i class="bi bi-x-lg me-1"></i> Reject Payment
+                                </button>
+                            </form>
+
+                        {% elif b[9] == 'Pending' %}
+                            <form action="{{ url_for('admin.verify_booking', booking_id=b[0]) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success fw-bold">
+                                    <i class="bi bi-check-lg me-1"></i> Verify
+                                </button>
+                            </form>
+                            <form action="{{ url_for('admin.reject_booking', booking_id=b[0]) }}" method="POST" class="d-inline"
+                                  onsubmit="return confirm('Reject this reservation? The user will be notified.');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">
+                                    <i class="bi bi-x-lg me-1"></i> Reject
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+            </div>
+            {% endfor %}
+
+            <div class="pagination-bar white-card" style="margin-top: 0.5rem;">
+                <span class="page-info">Page {{ active_page }} of {{ total_active_pages }}</span>
+                <nav>
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item {% if active_page <= 1 %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('bookings.my_bookings', mb_active_page=active_page-1, mb_history_page=history_page) }}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% for p in range(1, total_active_pages + 1) %}
+                        <li class="page-item {% if p == active_page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('bookings.my_bookings', mb_active_page=p, mb_history_page=history_page) }}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+                        <li class="page-item {% if active_page >= total_active_pages %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('bookings.my_bookings', mb_active_page=active_page+1, mb_history_page=history_page) }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            {% else %}
+            <div class="white-card mb-4">
+                <div class="empty-state">
+                    <i class="bi bi-calendar-x"></i>
+                    <h5 class="fw-bold mb-1">No active reservations</h5>
+                    <p class="mb-3">Make a reservation to get started.</p>
+                    <a href="{{ url_for('bookings.new_booking') }}" class="btn fw-bold"
+                       style="background: var(--gold-gradient); color: #ffffff; border: none; border-radius: 10px; padding: 0.55rem 1.1rem;">
+                        <i class="bi bi-plus-circle me-1"></i> Make a Reservation
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ============================================
+                 RESERVATION HISTORY (users only)
+                 ============================================ -->
+            {% if not is_admin %}
+            {% if history_bookings %}
+            <div class="section-heading">Reservation History ({{ history_bookings|length }} on this page)</div>
+
+            {% for b in history_bookings %}
+            <div class="white-card booking-card">
+
+                <div class="booking-card-header">
+                    <div>
+                        <div class="booking-ref">Reservation #{{ b[0] }}</div>
+                        <div class="booking-sub">
+                            <i class="bi bi-person me-1"></i>{{ b[1] }}
+                            {% if b[2] %} · <i class="bi bi-envelope me-1"></i>{{ b[2] }}{% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        {% if b[9] == 'Rejected' %}
+                            <span class="badge-status bg-danger-subtle text-danger border border-danger-subtle">
+                                <i class="bi bi-x-octagon-fill me-1"></i> Rejected
+                            </span>
+                        {% elif b[9] == 'Cancelled' %}
+                            <span class="badge-status bg-danger-subtle text-danger border border-danger-subtle">
+                                <i class="bi bi-x-circle-fill me-1"></i> Cancelled
+                            </span>
+                        {% elif b[9] != 'Completed' %}
+                            <span class="badge-status bg-secondary">{{ b[9] }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="booking-meta">
+                    <div class="booking-meta-item">
+                        <span class="booking-meta-label">Court</span>
+                        <span class="booking-meta-value">Court {{ b[4] }}</span>
+                    </div>
+                    <div class="booking-meta-item">
+                        <span class="booking-meta-label">Date</span>
+                        <span class="booking-meta-value mono">{{ b[5] }}</span>
+                    </div>
+                    <div class="booking-meta-item">
+                        <span class="booking-meta-label">Time</span>
+                        <span class="booking-meta-value mono">{{ b[6] }}</span>
+                    </div>
+                    <div class="booking-meta-item">
+                        <span class="booking-meta-label">Duration</span>
+                        <span class="booking-meta-value">{{ b[7] }} hr(s)</span>
+                    </div>
+                    <div class="booking-meta-item">
+                        <span class="booking-meta-label">Total</span>
+                        <span class="booking-meta-value amount">₱{{ "%.2f"|format(b[8]) }}</span>
+                    </div>
+                </div>
+
+                <div class="timeline-wrapper">
+                    <div class="timeline">
+
+                        <div class="timeline-step done">
+                            <div class="timeline-icon"><i class="bi bi-calendar-plus"></i></div>
+                            <div class="timeline-label">Reserved</div>
+                            <div class="timeline-time">{{ b[5] }}</div>
+                        </div>
+
+                        {% if b[9] in ('Completed', 'Rejected', 'Cancelled') %}
+                        <div class="timeline-step done">
+                            <div class="timeline-icon"><i class="bi bi-credit-card"></i></div>
+                            <div class="timeline-label">Processing</div>
+                            <div class="timeline-time">Done</div>
+                        </div>
+                        {% else %}
+                        <div class="timeline-step pending">
+                            <div class="timeline-icon"><i class="bi bi-credit-card"></i></div>
+                            <div class="timeline-label">Processing</div>
+                            <div class="timeline-time">—</div>
+                        </div>
+                        {% endif %}
+
+                        {% if b[9] == 'Completed' %}
+                        <div class="timeline-step done timeline-last">
+                            <div class="timeline-icon"><i class="bi bi-patch-check-fill"></i></div>
+                            <div class="timeline-label">Verified</div>
+                            <div class="timeline-time">Done</div>
+                        </div>
+                        {% elif b[9] in ('Rejected', 'Cancelled') %}
+                        <div class="timeline-step rejected timeline-last">
+                            <div class="timeline-icon"><i class="bi bi-x-octagon-fill"></i></div>
+                            <div class="timeline-label">{{ b[9] }}</div>
+                            <div class="timeline-time">Not approved</div>
+                        </div>
+                        {% else %}
+                        <div class="timeline-step pending timeline-last">
+                            <div class="timeline-icon"><i class="bi bi-patch-check"></i></div>
+                            <div class="timeline-label">Verified</div>
+                            <div class="timeline-time">—</div>
+                        </div>
+                        {% endif %}
+
+                        {% if b[9] == 'Completed' %}
+                        <div class="timeline-step done d-none">
+                            <div class="timeline-icon"><i class="bi bi-star-fill"></i></div>
+                            <div class="timeline-label">Completed</div>
+                            <div class="timeline-time">Done</div>
+                        </div>
+                        {% else %}
+                        <div class="timeline-step pending d-none">
+                            <div class="timeline-icon"><i class="bi bi-star"></i></div>
+                            <div class="timeline-label">Completed</div>
+                            <div class="timeline-time">—</div>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <div class="booking-actions">
+                    <a href="{{ url_for('bookings.view_receipt', transaction_id=b[0]) }}?type=booking"
+                       class="btn btn-sm btn-outline-warning fw-bold">
+                        <i class="bi bi-receipt me-1"></i> View Receipt
+                    </a>
+                </div>
+
+            </div>
+            {% endfor %}
+
+            <div class="pagination-bar white-card" style="margin-top: 0.5rem;">
+                <span class="page-info">Page {{ history_page }} of {{ total_history_pages }}</span>
+                <nav>
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item {% if history_page <= 1 %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('bookings.my_bookings', mb_active_page=active_page, mb_history_page=history_page-1) }}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% for p in range(1, total_history_pages + 1) %}
+                        <li class="page-item {% if p == history_page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('bookings.my_bookings', mb_active_page=active_page, mb_history_page=p) }}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+                        <li class="page-item {% if history_page >= total_history_pages %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('bookings.my_bookings', mb_active_page=active_page, mb_history_page=history_page+1) }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            {% endif %}
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- ============================================
+         LOGOUT CONFIRMATION MODAL
+         ============================================ -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);">
+                    <h5 class="modal-title fw-bold" id="logoutModalLabel">
+                        <i class="bi bi-box-arrow-right me-2"></i>Log out?
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div style="font-size: 3.5rem; color: #dc2626; margin-bottom: 0.75rem;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-primary);">Are you sure you want to log out?</h5>
+                    <p class="text-muted mb-0 small">
+                        You'll need to sign in again to access your reservations, orders, and shop.
+                    </p>
+                </div>
+                <div class="modal-footer bg-light border-0 justify-content-center gap-2 pb-4">
+                    <button type="button" class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </button>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger fw-bold px-4 rounded-3">
+                        <i class="bi bi-box-arrow-right me-1"></i> Yes, Log Out
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sidebar = document.getElementById('appSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const mainWrapper = document.getElementById('mainWrapper');
+            const isDesktop = () => window.matchMedia('(min-width: 992px)').matches;
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                backdrop.classList.add('show');
+                if (isDesktop() && mainWrapper) mainWrapper.classList.add('shifted');
+            }
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                backdrop.classList.remove('show');
+                if (mainWrapper) mainWrapper.classList.remove('shifted');
+            }
+            function toggleSidebar() {
+                if (sidebar.classList.contains('open')) closeSidebar();
+                else openSidebar();
+            }
+            if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
+            if (backdrop) backdrop.addEventListener('click', closeSidebar);
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
+            });
+            window.addEventListener('resize', function () {
+                if (!isDesktop() && mainWrapper) mainWrapper.classList.remove('shifted');
+            });
+        });
+
+        (function () {
+            const themeToggle = document.getElementById('themeToggle');
+            const root = document.documentElement;
+            function applyTheme(theme) {
+                root.setAttribute('data-bs-theme', theme);
+                root.dataset.ebcTheme = theme;
+                try { localStorage.setItem('ebc-theme', theme); } catch (e) {}
+            }
+            function currentTheme() {
+                return root.dataset.ebcTheme || root.getAttribute('data-bs-theme') || 'light';
+            }
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function () {
+                    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+                    applyTheme(next);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

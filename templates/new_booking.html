@@ -4,71 +4,120 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Court - EBC Badminton</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
     <style>
-        /* Modern Dark Teal / Emerald Color Theme */
         :root {
-            --primary-color: #0f766e;
-            --primary-hover: #115e59;
-            --accent-color: #14b8a6;
-            --dark-header: #022c22;
+            --gold-primary: #d4af37;
+            --gold-light: #fef08a;
+            --gold-dark: #996515;
+            --gold-gradient: linear-gradient(135deg, #fff099 0%, #d4af37 50%, #aa7c11 100%);
+            --header-bg: rgba(10, 12, 16, 0.95);
+            --header-border: rgba(212, 175, 55, 0.25);
             --card-bg: #ffffff;
             --text-main: #1f2937;
         }
 
         body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
             color: var(--text-main);
+            background: #f8fafc;
+            min-height: 100vh;
         }
 
-        /* Navbar Styling */
         .custom-navbar {
-            background-color: var(--dark-header) !important;
-            border-bottom: 3px solid var(--accent-color);
+            background: var(--header-bg) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--header-border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(212, 175, 55, 0.08);
+            padding-top: 0.8rem;
+            padding-bottom: 0.8rem;
         }
+
+        .navbar-logo {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4));
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand:hover .navbar-logo {
+            transform: scale(1.06) rotate(-2deg);
+        }
+
         .brand-title {
             font-size: 1.25rem;
             font-weight: 800;
-            letter-spacing: 0.6px;
-            color: #ffffff;
-            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
         }
 
-        /* Booking Card Theme */
+        .btn-outline-gold {
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            color: var(--gold-light);
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 0.5rem 1.1rem;
+            background: rgba(212, 175, 55, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-gold:hover {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: #d4af37;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
         .booking-card {
             background-color: var(--card-bg);
-            border-radius: 12px;
-            border-top: 5px solid var(--primary-color);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            border-radius: 18px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             padding: 0;
             overflow: hidden;
         }
 
         .booking-header {
-            background-color: var(--primary-color);
+            background: var(--header-bg);
             color: #ffffff;
-            padding: 24px;
+            padding: 28px 24px;
             text-align: center;
+            border-bottom: 2px solid var(--gold-primary);
+        }
+
+        .booking-header h3 {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .section-subtitle {
-            color: var(--primary-color);
+            color: var(--gold-dark);
             font-weight: 700;
-            border-bottom: 2px solid #e5e7eb;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.2);
             padding-bottom: 8px;
         }
 
-        .form-label {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 8px;
+        .text-gold {
+            color: #b48811 !important;
         }
 
-        /* Input Controls */
         .form-control-custom, .time-select {
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
             padding: 10px 14px;
             font-weight: 600;
             color: #111827;
@@ -76,39 +125,113 @@
         }
 
         .form-control-custom:focus, .time-select:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
             outline: none;
         }
 
-        /* Custom Emerald Action Button */
         .btn-booking {
-            background-color: var(--primary-color);
-            color: #ffffff;
+            background: var(--gold-gradient);
+            color: #000000;
             font-weight: 700;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 12px 20px;
-            transition: background-color 0.2s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
         }
 
         .btn-booking:hover {
-            background-color: var(--primary-hover);
-            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+            color: #000000;
+        }
+
+        .btn-booking:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ============================================
+           FLATPICKR: STRUCK-THROUGH BLOCKED DATES
+           ============================================ */
+        .flatpickr-day.flatpickr-blocked {
+            text-decoration: line-through;
+            text-decoration-color: #dc2626;
+            text-decoration-thickness: 2px;
+            color: #dc2626 !important;
+            background: rgba(220, 38, 38, 0.08) !important;
+            cursor: not-allowed !important;
+            position: relative;
+            font-weight: 700;
+        }
+
+        .flatpickr-day.flatpickr-blocked:hover {
+            background: rgba(220, 38, 38, 0.18) !important;
+            color: #991b1b !important;
+        }
+
+        .flatpickr-day.flatpickr-blocked::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border: 1px dashed rgba(220, 38, 38, 0.45);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .flatpickr-input.form-control-custom {
+            background: #ffffff;
+            cursor: pointer;
+        }
+
+        /* ============================================
+           COURT DROPDOWN — UNAVAILABLE OPTIONS
+           ============================================ */
+        .time-select option.court-unavailable {
+            color: #dc2626 !important;
+            background: rgba(220, 38, 38, 0.10) !important;
+            font-weight: 700;
+        }
+
+        .time-select option.court-available {
+            color: #111827;
+        }
+
+        #courtHint {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 6px;
+            color: #64748b;
+        }
+
+        #courtHint.text-warn {
+            color: #b45309;
         }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark custom-navbar mb-4 shadow-sm">
+    <nav class="navbar navbar-expand-lg sticky-top custom-navbar mb-4">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('index') }}">
-                <span class="brand-title">EBC Booking</span>
+            <a class="navbar-brand d-flex align-items-center gap-3" href="{{ url_for('bookings.index') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}"
+                     alt="EBC Logo"
+                     class="navbar-logo"
+                     onerror="this.onerror=null; this.src='/static/image/logo.png';">
+                <span class="brand-title">Esguerra Badminton Court</span>
             </a>
-            <div class="d-flex gap-2">
-                <a href="{{ url_for('index') }}" class="btn btn-outline-light btn-sm fw-semibold">Dashboard</a>
-                <a href="{{ url_for('shop') }}" class="btn btn-outline-light btn-sm">Pro Shop</a>
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+            <button class="navbar-toggler border-0 text-light shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="d-flex gap-2 ms-auto mt-3 mt-lg-0">
+                    <a href="{{ url_for('bookings.index') }}" class="btn btn-outline-gold btn-sm fw-semibold">
+                        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
@@ -116,35 +239,50 @@
     <div class="container my-5">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                
+
                 <div class="booking-card">
                     <div class="booking-header">
                         <h3 class="mb-1 fw-bold"><i class="bi bi-calendar-check me-2"></i>Reserve a Badminton Court</h3>
-                        <p class="mb-0 opacity-75">Rate: ₱150.00 / hour</p>
+                        <p class="mb-0 text-gold opacity-90 fw-semibold">Rate: ₱150.00 / hour</p>
                     </div>
 
                     <div class="p-4 p-md-5">
                         {% if error %}
-                            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                            <div class="alert alert-danger alert-dismissible fade show mb-4 rounded-3 border-0 shadow-sm" role="alert">
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error }}
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         {% endif %}
 
-                        <form id="bookingForm" action="{{ url_for('book_court') }}" method="POST">
+                        <form id="bookingForm" action="{{ url_for('bookings.new_booking') }}" method="POST">
                             <div class="row g-3">
-                                
+
                                 <div class="col-12">
-                                    <h5 class="section-subtitle mb-3"><i class="bi bi-person-fill me-1"></i> Customer Information</h5>
+                                    <h5 class="section-subtitle mb-3"><i class="bi bi-person-fill me-1 text-gold"></i> Customer Information</h5>
                                 </div>
-                                
+
+                                {% if session.get('role') == 'admin' %}
+                                <div class="col-12">
+                                    <label class="form-label" for="inputCustomerName">Customer Name</label>
+                                    <input type="text"
+                                           id="inputCustomerName"
+                                           name="customer_name"
+                                           class="form-control form-control-custom"
+                                           placeholder="Enter customer's full name"
+                                           required>
+                                    <div class="form-text text-muted">
+                                        Since you're booking as admin, enter the name of the customer making the reservation.
+                                    </div>
+                                </div>
+                                {% endif %}
+
                                 <div class="col-12">
                                     <label class="form-label" for="inputContact">Contact Number</label>
-                                    <input type="tel" 
-                                           id="inputContact" 
-                                           name="contact" 
-                                           class="form-control form-control-custom" 
-                                           placeholder="0900 000 0000 or +63000 000 0000" 
+                                    <input type="tel"
+                                           id="inputContact"
+                                           name="contact"
+                                           class="form-control form-control-custom"
+                                           placeholder="0900 000 0000 or +63000 000 0000"
                                            pattern="^(\+63\d{3}\s\d{3}\s\d{4}|09\d{2}\s\d{3}\s\d{4})$"
                                            maxlength="16"
                                            required>
@@ -154,23 +292,22 @@
                                 </div>
 
                                 <div class="col-12 mt-4">
-                                    <h5 class="section-subtitle mb-3"><i class="bi bi-clock-fill me-1"></i> Schedule & Court</h5>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label" for="inputCourt">Select Court</label>
-                                    <select id="inputCourt" name="court_number" class="form-select time-select" required>
-                                        <option value="" selected disabled>Choose court...</option>
-                                        <option value="Court 1">Court 1</option>
-                                        <option value="Court 2">Court 2</option>
-                                        <option value="Court 3">Court 3</option>
-                                        <option value="Court 4">Court 4</option>
-                                    </select>
+                                    <h5 class="section-subtitle mb-3"><i class="bi bi-clock-fill me-1 text-gold"></i> Schedule & Court</h5>
                                 </div>
 
                                 <div class="col-md-6">
                                     <label class="form-label" for="inputDate">Booking Date</label>
-                                    <input type="date" id="inputDate" name="booking_date" class="form-control form-control-custom" required>
+                                    <input type="text"
+                                           id="inputDate"
+                                           name="booking_date"
+                                           class="form-control form-control-custom"
+                                           placeholder="Pick a date..."
+                                           required
+                                           autocomplete="off"
+                                           readonly>
+                                    <div class="form-text text-muted">
+                                        Dates in <span style="color: #dc2626; font-weight: 600;">red</span> are unavailable.
+                                    </div>
                                 </div>
 
                                 <div class="col-md-6">
@@ -198,6 +335,18 @@
                                 </div>
 
                                 <div class="col-md-6">
+                                    <label class="form-label" for="inputCourt">Select Court</label>
+                                    <select id="inputCourt" name="court_number" class="form-select time-select" required>
+                                        <option value="" selected disabled>Choose court...</option>
+                                        <option value="Court 1" data-court-num="1">Court 1</option>
+                                        <option value="Court 2" data-court-num="2">Court 2</option>
+                                        <option value="Court 3" data-court-num="3">Court 3</option>
+                                        <option value="Court 4" data-court-num="4">Court 4</option>
+                                    </select>
+                                    <div id="courtHint">Pick a date and time to see available courts.</div>
+                                </div>
+
+                                <div class="col-md-6">
                                     <label class="form-label" for="inputDuration">Duration (Hours)</label>
                                     <input type="number" id="inputDuration" name="duration_hours" class="form-control form-control-custom" min="1" max="8" value="1" required>
                                 </div>
@@ -205,13 +354,13 @@
                                 <div class="col-12 mt-4">
                                     <div class="p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center">
                                         <span class="fs-5 text-muted fw-semibold">Estimated Total:</span>
-                                        <span id="displayTotal" class="fs-3 fw-bold text-success">₱150.00</span>
+                                        <span id="displayTotal" class="fs-3 fw-bold text-gold">₱150.00</span>
                                     </div>
                                 </div>
 
                                 <div class="col-12 mt-4">
                                     <button type="button" id="reviewBtn" class="btn btn-booking w-100 fs-5">
-                                        Review & Confirm Booking
+                                        Review &amp; Continue to Payment
                                     </button>
                                 </div>
 
@@ -224,21 +373,29 @@
         </div>
     </div>
 
+    <!-- Confirmation Modal -->
     <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-custom-header text-white" style="background-color: var(--dark-header);">
-                    <h5 class="modal-title fw-bold" id="confirmModalLabel">Confirm Your Booking</h5>
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header text-white" style="background-color: var(--header-bg); border-bottom: 2px solid var(--gold-primary);">
+                    <h5 class="modal-title fw-bold text-gold" id="confirmModalLabel">
+                        <i class="bi bi-shield-check me-2"></i>Confirm Your Reservation
+                    </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body fs-6">
-                    <p class="text-muted mb-3">Please double-check your court reservation details before proceeding:</p>
-                    <ul class="list-group list-group-flush border rounded">
+                <div class="modal-body fs-6 p-4">
+                    <p class="text-muted mb-3">Please double-check your court reservation details before proceeding to payment:</p>
+                    <ul class="list-group list-group-flush border rounded-3 overflow-hidden">
+                        {% if session.get('role') == 'admin' %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Customer:</strong> <span id="modalCustomerName">-</span>
+                        </li>
+                        {% endif %}
                         <li class="list-group-item d-flex justify-content-between">
                             <strong>Contact:</strong> <span id="modalContact">-</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
-                            <strong>Court:</strong> <span id="modalCourt" class="badge bg-dark">-</span>
+                            <strong>Court:</strong> <span id="modalCourt" class="badge bg-dark text-gold">-</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
                             <strong>Date:</strong> <span id="modalDate">-</span>
@@ -249,20 +406,40 @@
                         <li class="list-group-item d-flex justify-content-between">
                             <strong>Duration:</strong> <span id="modalDuration">-</span>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between bg-light fw-bold text-success">
+                        <li class="list-group-item d-flex justify-content-between bg-light fw-bold text-gold">
                             <span>Total Amount:</span> <span id="modalTotal" class="fs-5">₱0.00</span>
                         </li>
                     </ul>
+
+                    <div class="alert alert-warning small mt-3 mb-0 d-flex align-items-start gap-2">
+                        <i class="bi bi-phone mt-1"></i>
+                        <div>
+                            <strong>Next step:</strong> You'll be redirected to a payment page where you can
+                            scan our GCash QR code and upload your proof of payment.
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Edit Details</button>
-                    <button type="button" id="finalConfirmBtn" class="btn btn-booking">Confirm Booking</button>
+                    <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Edit Details</button>
+                    <button type="button" id="finalConfirmBtn" class="btn btn-booking">
+                        <i class="bi bi-arrow-right-circle me-1"></i> Confirm &amp; Proceed to Payment
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+        <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Flatpickr -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- Jinja-rendered flag for admin state -->
+    <script>
+        const IS_ADMIN = {{ 'true' if session.get('role') == 'admin' else 'false' }};
+        const BLOCKED_DATES = {{ blocked_dates | tojson | safe }};
+    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('bookingForm');
@@ -273,17 +450,42 @@
             const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
             const finalConfirmBtn = document.getElementById('finalConfirmBtn');
             const timeSelect = document.getElementById('inputTime');
+            const dateInput = document.getElementById('inputDate');
+            const courtSelect = document.getElementById('inputCourt');
+            const courtHint = document.getElementById('courtHint');
             const HOURLY_RATE = 150;
 
-            // Set minimum date to today
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('inputDate').setAttribute('min', today);
+            // ============================================
+            // FLATPICKR — blocks + strikethrough on blocked dates
+            // ============================================
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-            // Auto-format contact number on input
+            flatpickr("#inputDate", {
+                dateFormat: "Y-m-d",
+                minDate: today,
+                disable: BLOCKED_DATES,
+                onDayCreate: function (dObj, dStr, fp, dayElem) {
+                    if (!dayElem.dateObj) return;
+                    const y = dayElem.dateObj.getFullYear();
+                    const m = String(dayElem.dateObj.getMonth() + 1).padStart(2, '0');
+                    const d = String(dayElem.dateObj.getDate()).padStart(2, '0');
+                    const iso = `${y}-${m}-${d}`;
+
+                    if (BLOCKED_DATES.includes(iso)) {
+                        dayElem.classList.add('flatpickr-blocked');
+                        dayElem.setAttribute('title', 'Court unavailable on this date');
+                    }
+                },
+                onChange: function () {
+                    refreshCourtAvailability();
+                }
+            });
+
+            // ---- Contact number formatting ----
             contactInput.addEventListener('input', function (e) {
                 let value = e.target.value;
 
-                // Handle +63 format
                 if (value.startsWith('+') || value.startsWith('63')) {
                     if (!value.startsWith('+63')) {
                         value = '+63' + value.replace(/^(\+63|63|\+)/, '');
@@ -295,7 +497,6 @@
                     if (raw.length >= 7) formatted += ' ' + raw.substring(6, 10);
                     e.target.value = formatted;
                 } else {
-                    // Handle 09 format
                     let raw = value.replace(/\D/g, '');
                     if (raw.length > 11) raw = raw.substring(0, 11);
                     let formatted = '';
@@ -317,16 +518,97 @@
                 }
             }
 
-            // Update price live
             function updateTotal() {
                 const hours = parseInt(durationInput.value) || 0;
                 const total = hours * HOURLY_RATE;
                 displayTotal.textContent = `₱${total.toFixed(2)}`;
             }
 
-            durationInput.addEventListener('input', updateTotal);
+            durationInput.addEventListener('input', function () {
+                updateTotal();
+                refreshCourtAvailability();
+            });
 
-            // Populate Modal and Open
+            // ============================================
+            // COURT AVAILABILITY (AJAX)
+            // ============================================
+            function refreshCourtAvailability() {
+                const date = dateInput.value;
+                const time = timeSelect.value;
+                const duration = durationInput.value || 1;
+
+                if (!date || !time) {
+                    resetCourtOptions();
+                    courtHint.textContent = 'Pick a date and time to see available courts.';
+                    courtHint.classList.remove('text-warn');
+                    return;
+                }
+
+                courtHint.textContent = 'Checking availability…';
+                courtHint.classList.add('text-warn');
+
+                fetch(`/api/available-courts?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&duration=${encodeURIComponent(duration)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const booked = new Set((data.booked || []).map(Number));
+                        applyCourtAvailability(booked);
+
+                        if (booked.size === 4) {
+                            courtHint.textContent = 'All courts are reserved for this time slot. Try a different time.';
+                            courtHint.classList.add('text-warn');
+                        } else if (booked.size > 0) {
+                            const names = [...booked].sort().map(n => 'Court ' + n).join(', ');
+                            courtHint.textContent = 'Unavailable: ' + names + ' (shown in red).';
+                            courtHint.classList.add('text-warn');
+                        } else {
+                            courtHint.textContent = 'All courts are available.';
+                            courtHint.classList.remove('text-warn');
+                        }
+                    })
+                    .catch(() => {
+                        courtHint.textContent = 'Could not check availability. Please try again.';
+                        courtHint.classList.add('text-warn');
+                    });
+            }
+
+            function resetCourtOptions() {
+                Array.from(courtSelect.options).forEach(opt => {
+                    if (!opt.value) return;
+                    opt.disabled = false;
+                    opt.classList.remove('court-unavailable');
+                    opt.classList.add('court-available');
+                    opt.textContent = 'Court ' + opt.dataset.courtNum;
+                });
+            }
+
+            function applyCourtAvailability(bookedSet) {
+                Array.from(courtSelect.options).forEach(opt => {
+                    if (!opt.value) return;
+                    const num = Number(opt.dataset.courtNum);
+                    const isBooked = bookedSet.has(num);
+
+                    if (isBooked) {
+                        opt.disabled = true;
+                        opt.classList.add('court-unavailable');
+                        opt.classList.remove('court-available');
+                        opt.textContent = `Court ${num} — UNAVAILABLE`;
+                        if (courtSelect.value === opt.value) {
+                            courtSelect.value = '';
+                        }
+                    } else {
+                        opt.disabled = false;
+                        opt.classList.remove('court-unavailable');
+                        opt.classList.add('court-available');
+                        opt.textContent = `Court ${num}`;
+                    }
+                });
+            }
+
+            timeSelect.addEventListener('change', refreshCourtAvailability);
+
+            // ============================================
+            // REVIEW & CONTINUE TO PAYMENT
+            // ============================================
             reviewBtn.addEventListener('click', function () {
                 validateContact();
 
@@ -336,11 +618,19 @@
                 }
 
                 const contact = contactInput.value;
-                const court = document.getElementById('inputCourt').value;
-                const date = document.getElementById('inputDate').value;
+                const court = courtSelect.value;
+                const date = dateInput.value;
                 const selectedTimeText = timeSelect.options[timeSelect.selectedIndex].text;
                 const duration = durationInput.value;
                 const totalAmount = (parseInt(duration) * HOURLY_RATE).toFixed(2);
+
+                if (IS_ADMIN) {
+                    const customerNameInput = document.getElementById('inputCustomerName');
+                    const modalCustomerName = document.getElementById('modalCustomerName');
+                    if (customerNameInput && modalCustomerName) {
+                        modalCustomerName.textContent = customerNameInput.value;
+                    }
+                }
 
                 document.getElementById('modalContact').textContent = contact;
                 document.getElementById('modalCourt').textContent = court;
@@ -352,10 +642,12 @@
                 confirmModal.show();
             });
 
-            // Submit form when modal confirm button is clicked
             finalConfirmBtn.addEventListener('click', function () {
                 form.submit();
             });
+
+            // Initialize on page load
+            updateTotal();
         });
     </script>
 </body>

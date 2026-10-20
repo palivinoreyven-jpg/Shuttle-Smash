@@ -3,96 +3,410 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt #{{ transaction.id }} - EBC Badminton</title>
+    <title>
+        {% if transaction.status == 'Pending' %}
+            {% if transaction.type == 'Shop Order' %}Order Summary{% else %}Booking Summary{% endif %}
+        {% elif transaction.status == 'Rejected' %}Receipt (Rejected)
+        {% elif transaction.status == 'Cancelled' %}Receipt (Cancelled)
+        {% elif transaction.status == 'Delivered' %}Receipt (Delivered)
+        {% else %}Official Receipt{% endif %}
+        #{{ transaction.id }} - EBC Badminton
+    </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
+        }
+
+        .receipt-card {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+            background: #ffffff;
+        }
+
+        .receipt-header {
+            padding: 28px 30px;
+            text-align: center;
+            color: #ffffff;
+            border-bottom: 3px solid #d4af37;
+        }
+
+        /* Status-based header colors */
+        .header-pending { background: linear-gradient(135deg, #92400e 0%, #b45309 100%); }
+        .header-verified { background: linear-gradient(135deg, #065f46 0%, #047857 100%); }
+        .header-delivered { background: linear-gradient(135deg, #065f46 0%, #047857 100%); }
+        .header-rejected { background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%); }
+        .header-cancelled { background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%); }
+        .header-default { background: linear-gradient(135deg, #0f172a 0%, #0a192f 100%); }
+
+        .receipt-header h3 {
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+
+        .receipt-header p {
+            margin: 4px 0 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: 12px;
+        }
+
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-verified { background: #d1fae5; color: #065f46; }
+        .badge-delivered { background: #d1fae5; color: #065f46; }
+        .badge-rejected { background: #fee2e2; color: #7f1d1d; }
+        .badge-cancelled { background: #fee2e2; color: #7f1d1d; }
+
+        .receipt-body { padding: 30px; }
+
+        .row-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px dashed #e2e8f0;
+            gap: 1rem;
+        }
+
+        .row-line:last-of-type { border-bottom: none; }
+
+        .row-label {
+            color: #64748b;
+            font-size: 0.85rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .row-value {
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 0.92rem;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .total-line {
+            margin-top: 20px;
+            padding: 18px 20px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-line .label { color: #78350f; font-weight: 700; font-size: 0.95rem; }
+        .total-line .amount { color: #7a5b0a; font-weight: 800; font-size: 1.4rem; }
+
+        .notice-box {
+            margin-top: 22px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            line-height: 1.5;
+        }
+
+        .notice-pending { background: #fffbeb; border: 1px solid #fde68a; color: #78350f; }
+        .notice-verified { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+        .notice-rejected { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
+
+        .footer-actions {
+            padding: 18px 30px 28px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-back {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 10px 16px;
+            flex: 1;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover { background: #f1f5f9; color: #0f172a; }
+
+        .btn-print {
+            background: linear-gradient(135deg, #fff099 0%, #d4af37 50%, #aa7c11 100%);
+            border: none;
+            color: #000000;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 10px 16px;
+            flex: 1;
+            transition: all 0.2s ease;
+        }
+
+        .btn-print:hover {
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+            color: #000000;
+        }
+
         @media print {
             .no-print { display: none !important; }
-            .card { border: none !important; box-shadow: none !important; }
+            .receipt-card { box-shadow: none !important; }
+            body { background: #ffffff !important; }
         }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
     <div class="container my-5">
         <div class="row justify-content-center">
             <div class="col-md-6">
-                
-                <div class="card shadow-lg border-0 rounded-4">
-                    <div class="card-body p-4">
-                        
-                        <!-- Header -->
-                        <div class="text-center mb-4">
-                            <h3 class="fw-bold text-uppercase mb-1">EBC Badminton Court</h3>
-                            <p class="text-muted small mb-0">Official Transaction Receipt</p>
-                            <hr class="my-3">
-                        </div>
+                <div class="receipt-card">
 
-                        <!-- General Details -->
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Transaction ID:</span>
-                            <span class="fw-bold">#{{ transaction.id }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Customer Name:</span>
-                            <span class="fw-bold">{{ transaction.customer_name }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Contact:</span>
-                            <span class="fw-bold">{{ transaction.contact }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Type:</span>
-                            <span class="badge bg-dark">{{ transaction.type }}</span>
-                        </div>
+                    {# ============================================
+                       HEADER — dynamic per type + status
+                       ============================================ #}
 
-                        <hr class="my-3">
-
-                        <!-- Conditional Content based on Transaction Type -->
-                        {% if transaction.type == 'Court Booking' %}
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Court Reserved:</span>
-                                <span class="fw-bold">{{ transaction.details.court_number }}</span>
+                    {# --- BOOKING RECEIPTS --- #}
+                    {% if transaction.type == 'Court Booking' %}
+                        {% if transaction.status == 'Pending' %}
+                            <div class="receipt-header header-pending">
+                                <h3><i class="bi bi-hourglass-split me-2"></i>Booking Summary</h3>
+                                <p>Pending Admin Verification</p>
+                                <span class="status-badge badge-pending">Pending</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Booking Date:</span>
-                                <span class="fw-bold">{{ transaction.details.booking_date }}</span>
+                        {% elif transaction.status == 'Rejected' %}
+                            <div class="receipt-header header-rejected">
+                                <h3><i class="bi bi-x-octagon-fill me-2"></i>Booking Rejected</h3>
+                                <p>This booking was not approved</p>
+                                <span class="status-badge badge-rejected">Rejected</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Time & Duration:</span>
-                                <span class="fw-bold">{{ transaction.details.booking_time }} ({{ transaction.details.duration }} hrs)</span>
+                        {% elif transaction.status == 'Cancelled' %}
+                            <div class="receipt-header header-cancelled">
+                                <h3><i class="bi bi-x-circle me-2"></i>Booking Cancelled</h3>
+                                <p>This booking was cancelled</p>
+                                <span class="status-badge badge-cancelled">Cancelled</span>
                             </div>
-                        {% elif transaction.type == 'Shop Order' %}
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Product Purchased:</span>
-                                <span class="fw-bold">{{ transaction.details.product_name }}</span>
+                        {% elif transaction.status == 'Verified' %}
+                            <div class="receipt-header header-verified">
+                                <h3><i class="bi bi-patch-check-fill me-2"></i>Official Receipt</h3>
+                                <p>Esguerra Badminton Court</p>
+                                <span class="status-badge badge-verified">Verified</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Quantity:</span>
-                                <span class="fw-bold">{{ transaction.details.quantity }}</span>
+                        {% else %}
+                            <div class="receipt-header header-default">
+                                <h3><i class="bi bi-receipt me-2"></i>Booking Receipt</h3>
+                                <p>Esguerra Badminton Court</p>
                             </div>
                         {% endif %}
 
-                        <hr class="my-3">
+                    {# --- SHOP ORDER RECEIPTS --- #}
+                    {% elif transaction.type == 'Shop Order' %}
+                        {% if transaction.status == 'Pending' %}
+                            <div class="receipt-header header-pending">
+                                <h3><i class="bi bi-hourglass-split me-2"></i>Order Summary</h3>
+                                <p>Pending Admin Verification</p>
+                                <span class="status-badge badge-pending">Pending</span>
+                            </div>
+                        {% elif transaction.status == 'Rejected' %}
+                            <div class="receipt-header header-rejected">
+                                <h3><i class="bi bi-x-octagon-fill me-2"></i>Order Rejected</h3>
+                                <p>This order was not approved</p>
+                                <span class="status-badge badge-rejected">Rejected</span>
+                            </div>
+                        {% elif transaction.status == 'Delivered' %}
+                            <div class="receipt-header header-delivered">
+                                <h3><i class="bi bi-box-seam-fill me-2"></i>Official Receipt</h3>
+                                <p>Order Delivered — Thank you!</p>
+                                <span class="status-badge badge-delivered">Delivered</span>
+                            </div>
+                        {% elif transaction.status == 'Verified' %}
+                            <div class="receipt-header header-verified">
+                                <h3><i class="bi bi-patch-check-fill me-2"></i>Official Receipt</h3>
+                                <p>Esguerra Badminton Court</p>
+                                <span class="status-badge badge-verified">Verified</span>
+                            </div>
+                        {% else %}
+                            <div class="receipt-header header-default">
+                                <h3><i class="bi bi-receipt me-2"></i>Order Receipt</h3>
+                                <p>Esguerra Badminton Court</p>
+                            </div>
+                        {% endif %}
 
-                        <!-- Total -->
-                        <div class="d-flex justify-content-between align-items-center fs-5 fw-bold">
-                            <span>Total Amount Paid:</span>
-                            <span class="text-success">₱{{ "%.2f"|format(transaction.total_amount) }}</span>
+                    {# --- FALLBACK --- #}
+                    {% else %}
+                        <div class="receipt-header header-default">
+                            <h3><i class="bi bi-receipt me-2"></i>Receipt</h3>
+                            <p>Esguerra Badminton Court</p>
+                        </div>
+                    {% endif %}
+
+                    {# ============================================
+                       BODY
+                       ============================================ #}
+                    <div class="receipt-body">
+
+                        <div class="row-line">
+                            <span class="row-label">
+                                {% if transaction.type == 'Shop Order' %}Order #{% else %}Reference #{% endif %}
+                            </span>
+                            <span class="row-value">#{{ transaction.id }}</span>
+                        </div>
+                        <div class="row-line">
+                            <span class="row-label">Customer</span>
+                            <span class="row-value">{{ transaction.customer_name }}</span>
+                        </div>
+                        <div class="row-line">
+                            <span class="row-label">
+                                {% if transaction.type == 'Shop Order' %}Email{% else %}Contact / Email{% endif %}
+                            </span>
+                            <span class="row-value">{{ transaction.contact }}</span>
+                        </div>
+                        <div class="row-line">
+                            <span class="row-label">Type</span>
+                            <span class="row-value">{{ transaction.type }}</span>
                         </div>
 
+                        {% if transaction.type == 'Court Booking' %}
+                            <div class="row-line">
+                                <span class="row-label">Court</span>
+                                <span class="row-value">{{ transaction.details.court_number }}</span>
+                            </div>
+                            <div class="row-line">
+                                <span class="row-label">Booking Date</span>
+                                <span class="row-value">{{ transaction.details.booking_date }}</span>
+                            </div>
+                            <div class="row-line">
+                                <span class="row-label">Time & Duration</span>
+                                <span class="row-value">{{ transaction.details.booking_time }} ({{ transaction.details.duration }} hr{% if transaction.details.duration != 1 %}s{% endif %})</span>
+                            </div>
+                        {% elif transaction.type == 'Shop Order' %}
+                            <div class="row-line">
+                                <span class="row-label">Product</span>
+                                <span class="row-value">{{ transaction.details.product_name }}</span>
+                            </div>
+                            <div class="row-line">
+                                <span class="row-label">Quantity</span>
+                                <span class="row-value">{{ transaction.details.quantity }}</span>
+                            </div>
+                        {% endif %}
+
+                        <div class="total-line">
+                            <span class="label">Total Amount</span>
+                            <span class="amount">₱{{ "%.2f"|format(transaction.total_amount) }}</span>
+                        </div>
+
+                        {# ============================================
+                           STATUS NOTICES
+                           ============================================ #}
+
+                        {% if transaction.type == 'Court Booking' %}
+                            {% if transaction.status == 'Pending' %}
+                                <div class="notice-box notice-pending">
+                                    <i class="bi bi-info-circle-fill mt-1"></i>
+                                    <div>
+                                        <strong>This is a booking summary, not yet an official receipt.</strong><br>
+                                        Your booking will be confirmed once an admin verifies it. You'll be notified, and this page will update automatically to show your Official Receipt.
+                                    </div>
+                                </div>
+                            {% elif transaction.status == 'Rejected' %}
+                                <div class="notice-box notice-rejected">
+                                    <i class="bi bi-x-octagon-fill mt-1"></i>
+                                    <div>
+                                        <strong>This booking was not approved.</strong><br>
+                                        Please contact the Esguerra Badminton Court admin if you have questions, or make a new booking for a different time.
+                                    </div>
+                                </div>
+                            {% elif transaction.status == 'Cancelled' %}
+                                <div class="notice-box notice-rejected">
+                                    <i class="bi bi-x-circle-fill mt-1"></i>
+                                    <div>
+                                        <strong>This booking was cancelled.</strong><br>
+                                        If you believe this is an error, please contact the Esguerra Badminton Court admin.
+                                    </div>
+                                </div>
+                            {% elif transaction.status == 'Verified' %}
+                                <div class="notice-box notice-verified">
+                                    <i class="bi bi-check-circle-fill mt-1"></i>
+                                    <div>
+                                        <strong>Your booking is confirmed.</strong><br>
+                                        Thank you for choosing Esguerra Badminton Court. Please present this receipt when you arrive.
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                        {% elif transaction.type == 'Shop Order' %}
+                            {% if transaction.status == 'Pending' %}
+                                <div class="notice-box notice-pending">
+                                    <i class="bi bi-info-circle-fill mt-1"></i>
+                                    <div>
+                                        <strong>This is an order summary, not yet an official receipt.</strong><br>
+                                        Your order will be confirmed once an admin verifies it. You'll be notified, and this page will update automatically to show your Official Receipt.
+                                    </div>
+                                </div>
+                            {% elif transaction.status == 'Rejected' %}
+                                <div class="notice-box notice-rejected">
+                                    <i class="bi bi-x-octagon-fill mt-1"></i>
+                                    <div>
+                                        <strong>This order was not approved.</strong><br>
+                                        Please contact the Esguerra Badminton Court admin if you have questions.
+                                    </div>
+                                </div>
+                            {% elif transaction.status == 'Verified' %}
+                                <div class="notice-box notice-verified">
+                                    <i class="bi bi-check-circle-fill mt-1"></i>
+                                    <div>
+                                        <strong>Your order is confirmed.</strong><br>
+                                        Please pick up your item(s) at the Esguerra Badminton Court counter. Present this receipt when claiming.
+                                    </div>
+                                </div>
+                            {% elif transaction.status == 'Delivered' %}
+                                <div class="notice-box notice-verified">
+                                    <i class="bi bi-box-seam-fill mt-1"></i>
+                                    <div>
+                                        <strong>Order delivered.</strong><br>
+                                        Thank you for shopping with Esguerra Badminton Court! We hope to see you again.
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="card-footer bg-light border-0 p-3 d-flex gap-2 no-print">
-                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary w-50">Back to Dashboard</a>
-                        <button onclick="window.print()" class="btn btn-dark w-50">
-                            <i class="bi bi-printer me-1"></i> Print Receipt
+                    {# ============================================
+                       FOOTER ACTIONS
+                       ============================================ #}
+                    <div class="footer-actions no-print">
+                        <a href="{{ url_for('bookings.index') }}" class="btn btn-back">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                        </a>
+                        {% if transaction.status == 'Verified' or transaction.status == 'Delivered' %}
+                        <button onclick="window.print()" class="btn btn-print">
+                            <i class="bi bi-printer me-1"></i> Print
                         </button>
+                        {% endif %}
                     </div>
-                </div>
 
+                </div>
             </div>
         </div>
     </div>

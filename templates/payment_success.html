@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Submitted - EBC Badminton</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top center, #1a1e29 0%, #06080c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .success-card {
+            background: rgba(20, 24, 32, 0.55);
+            backdrop-filter: blur(22px) saturate(140%);
+            -webkit-backdrop-filter: blur(22px) saturate(140%);
+            border-radius: 18px;
+            border: 1px solid rgba(212, 175, 55, 0.28);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 40px rgba(212, 175, 55, 0.1);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            max-width: 520px;
+            width: 100%;
+            color: #cbd5e1;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #d4af37;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.6));
+            display: inline-block;
+            animation: pop 0.5s ease-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        h2 {
+            color: #f1f5f9;
+            font-weight: 800;
+        }
+
+        .pending-box {
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.28);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin: 1.5rem 0;
+            text-align: left;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            line-height: 1.55;
+        }
+
+        .pending-box strong { color: #f4d03f; }
+
+        .pending-icon {
+            font-size: 1.25rem;
+            color: #f4d03f;
+            margin-right: 0.4rem;
+            vertical-align: middle;
+        }
+
+        .ref-badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            color: #f4d03f;
+            font-weight: 800;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #fff5b8 0%, #f4d03f 50%, #d4af37 100%);
+            color: #000000;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            padding: 0.85rem 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+            color: #000000;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: #cbd5e1;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 0.85rem 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+
+        <h2 class="fw-bold mb-2">Payment Submitted!</h2>
+
+        <div class="ref-badge">
+            <i class="bi bi-hash"></i> Reservation #{{ booking_id }}
+        </div>
+
+        <p class="mb-0" style="color: #94a3b8;">
+            Your payment proof has been received successfully.
+        </p>
+
+        <div class="pending-box">
+            <i class="bi bi-hourglass-split pending-icon"></i>
+            <strong>Waiting for admin verification.</strong><br>
+            Our team will review your payment proof shortly. You'll receive a notification once your reservation is confirmed, and your official receipt will become available.
+        </div>
+
+        <div class="d-grid gap-2">
+            <a href="{{ url_for('bookings.my_bookings') }}" class="btn btn-gold">
+                <i class="bi bi-calendar-check me-2"></i> View My Reservations
+            </a>
+            <a href="{{ url_for('bookings.index') }}" class="btn btn-ghost">
+                <i class="bi bi-speedometer2 me-2"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

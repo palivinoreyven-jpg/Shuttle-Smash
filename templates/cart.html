@@ -4,76 +4,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Cart - EBC Badminton</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Bootstrap 5 CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        /* Modern Dark Teal / Emerald Palette */
         :root {
-            --primary-color: #0f766e;
-            --primary-hover: #115e59;
-            --accent-color: #14b8a6;
-            --dark-header: #022c22;
+            --gold-primary: #d4af37;
+            --gold-light: #fef08a;
+            --gold-dark: #996515;
+            --gold-gradient: linear-gradient(135deg, #fff099 0%, #d4af37 50%, #aa7c11 100%);
+            --header-bg: rgba(10, 12, 16, 0.95);
+            --header-border: rgba(212, 175, 55, 0.25);
             --card-bg: #ffffff;
             --text-main: #1f2937;
         }
 
         body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
             color: var(--text-main);
+            background: #f8fafc;
+            min-height: 100vh;
         }
 
-        /* Navigation Bar */
+        /* Enhanced Glassmorphism Black & Gold Navbar */
         .custom-navbar {
-            background-color: var(--dark-header) !important;
-            border-bottom: 3px solid var(--accent-color);
+            background: var(--header-bg) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--header-border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(212, 175, 55, 0.08);
+            padding-top: 0.8rem;
+            padding-bottom: 0.8rem;
+        }
+
+        .navbar-logo {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4));
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand:hover .navbar-logo {
+            transform: scale(1.06) rotate(-2deg);
         }
 
         .brand-title {
             font-size: 1.25rem;
             font-weight: 800;
-            letter-spacing: 0.6px;
-            color: #ffffff;
-            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
         }
 
-        /* Custom Cards & Headings */
+        .btn-outline-gold {
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            color: var(--gold-light);
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 0.5rem 1.1rem;
+            background: rgba(212, 175, 55, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-gold:hover {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: #d4af37;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        /* Pure White Cards Styling with Gold Accents */
         .card-custom {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            background: #ffffff !important;
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
             overflow: hidden;
         }
 
-        .card-header-teal {
+        .card-header-gold {
             background-color: #ffffff;
-            border-bottom: 2px solid #e5e7eb;
-            color: var(--primary-color);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            color: var(--gold-dark);
         }
 
-        /* Teal Buttons */
-        .btn-teal {
-            background-color: var(--primary-color);
-            color: #ffffff;
+        /* Gold Buttons & Utility */
+        .btn-gold {
+            background: var(--gold-gradient);
+            color: #000000;
             font-weight: 700;
             border: none;
-            transition: background-color 0.2s ease;
+            border-radius: 10px;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
         }
 
-        .btn-teal:hover {
-            background-color: var(--primary-hover);
-            color: #ffffff;
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+            color: #000000;
         }
 
-        .text-teal {
-            color: var(--primary-color) !important;
+        .text-gold {
+            color: #b48811 !important;
+        }
+
+        .bg-gold-subtle {
+            background-color: rgba(212, 175, 55, 0.15) !important;
+            color: var(--gold-dark) !important;
         }
 
         /* Success Pop-up Styling */
         .modal-success-icon {
             width: 80px;
             height: 80px;
-            background-color: #ccfbf1;
-            color: var(--primary-color);
+            background-color: rgba(212, 175, 55, 0.15);
+            color: #b48811;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -83,30 +137,44 @@
         }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark custom-navbar mb-4 shadow-sm">
+    <!-- Enhanced Black & Gold Header Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top custom-navbar mb-4">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('index') }}">
-                <span class="brand-title">Cart</span>
+            <a class="navbar-brand d-flex align-items-center gap-3" href="{{ url_for('bookings.index') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" 
+                     alt="EBC Logo" 
+                     class="navbar-logo"
+                     onerror="this.onerror=null; this.src='/static/image/logo.png';">
+                <span class="brand-title">Esguerra Badminton Court</span>
             </a>
-            <div class="d-flex gap-2">
-                <a href="{{ url_for('shop') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-shop me-1"></i> Pro Shop</a>
-                <a href="{{ url_for('index') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-speedometer2 me-1"></i> Dashboard</a>
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm" title="Logout"><i class="bi bi-box-arrow-right"></i></a>
+            <button class="navbar-toggler border-0 text-light shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="d-flex gap-2 ms-auto mt-3 mt-lg-0">
+                    <a href="{{ url_for('shop.shop') }}" class="btn btn-outline-gold btn-sm fw-semibold">
+                        <i class="bi bi-shop me-1"></i> Pro Shop
+                    </a>
+                    <a href="{{ url_for('bookings.index') }}" class="btn btn-outline-gold btn-sm fw-semibold">
+                        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                    </a>
+                    
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container my-4">
+    <div class="container my-4 mb-5">
         <div class="row g-4">
             
             {% if cart_items %}
             <div class="col-lg-8">
                 <div class="card card-custom">
-                    <div class="card-header card-header-teal py-3 d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 fw-bold"><i class="bi bi-cart3 me-2 text-teal"></i> Your Cart Items</h5>
-                        <span class="badge bg-teal rounded-pill fs-6" style="background-color: var(--primary-color);">{{ cart_items|length }} Item(s)</span>
+                    <div class="card-header card-header-gold py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-cart3 me-2 text-gold"></i> Your Cart Items</h5>
+                        <span class="badge bg-gold-subtle rounded-pill fs-6 px-3 py-2 fw-bold">{{ cart_items|length }} Item(s)</span>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -137,7 +205,7 @@
                                             ₱{{ "%.2f"|format(item.subtotal) }}
                                         </td>
                                         <td class="text-center pe-4">
-                                            <form action="{{ url_for('remove_from_cart', product_id=item.id) }}" method="POST" class="d-inline">
+                                            <form action="{{ url_for('shop.remove_from_cart', product_id=item.id) }}" method="POST" class="d-inline">
                                                 <button type="submit" class="btn btn-outline-danger btn-sm border-0" title="Remove item">
                                                     <i class="bi bi-trash3-fill"></i>
                                                 </button>
@@ -150,7 +218,7 @@
                         </div>
                     </div>
                     <div class="card-footer bg-white py-3">
-                        <a href="{{ url_for('shop') }}" class="btn btn-outline-secondary btn-sm">
+                        <a href="{{ url_for('shop.shop') }}" class="btn btn-outline-secondary btn-sm rounded-3">
                             <i class="bi bi-arrow-left me-1"></i> Continue Shopping
                         </a>
                     </div>
@@ -159,7 +227,7 @@
 
             <div class="col-lg-4">
                 <div class="card card-custom position-sticky" style="top: 20px;">
-                    <div class="card-header card-header-teal py-3">
+                    <div class="card-header card-header-gold py-3">
                         <h5 class="mb-0 fw-bold text-dark">Order Summary</h5>
                     </div>
                     <div class="card-body p-4">
@@ -169,15 +237,15 @@
                         </div>
                         <div class="d-flex justify-content-between mb-3">
                             <span class="text-muted">Fulfillment Fee</span>
-                            <span class="text-teal fw-bold">FREE</span>
+                            <span class="text-gold fw-bold">FREE</span>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <span class="fs-5 fw-bold text-dark">Total</span>
-                            <span class="fs-3 fw-bold text-teal">₱{{ "%.2f"|format(total_price) }}</span>
+                            <span class="fs-3 fw-bold text-gold">₱{{ "%.2f"|format(total_price) }}</span>
                         </div>
 
-                        <button type="button" class="btn btn-teal btn-lg w-100 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                        <button type="button" class="btn btn-gold btn-lg w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#checkoutModal">
                             <i class="bi bi-credit-card me-2"></i> Proceed to Checkout
                         </button>
                     </div>
@@ -188,11 +256,11 @@
             <div class="col-12 text-center py-5">
                 <div class="card card-custom p-5 my-3 mx-auto" style="max-width: 500px;">
                     <div class="mb-3 text-secondary">
-                        <i class="bi bi-cart-x display-1"></i>
+                        <i class="bi bi-cart-x display-1 text-gold"></i>
                     </div>
-                    <h3 class="fw-bold mb-2">Your cart is empty</h3>
+                    <h3 class="fw-bold mb-2 text-dark">Your cart is empty</h3>
                     <p class="text-muted mb-4">Looks like you haven't added any rackets, shuttlecocks, or gear yet.</p>
-                    <a href="{{ url_for('shop') }}" class="btn btn-teal btn-lg fw-bold">
+                    <a href="{{ url_for('shop.shop') }}" class="btn btn-gold btn-lg fw-bold">
                         <i class="bi bi-bag-plus me-2"></i> Visit Pro Shop
                     </a>
                 </div>
@@ -203,11 +271,12 @@
     </div>
 
     {% if cart_items %}
+    <!-- Checkout Modal -->
     <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header text-white rounded-top-4" style="background-color: var(--dark-header);">
-                    <h5 class="modal-title fw-bold" id="checkoutModalLabel"><i class="bi bi-check-circle me-2"></i>Confirm Purchase</h5>
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header text-white" style="background-color: var(--header-bg); border-bottom: 2px solid var(--gold-primary);">
+                    <h5 class="modal-title fw-bold text-gold" id="checkoutModalLabel"><i class="bi bi-check-circle me-2"></i>Confirm Purchase</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
@@ -215,14 +284,14 @@
                     <div class="p-3 bg-light rounded-3 border mb-3">
                         <div class="d-flex justify-content-between fw-bold fs-5 text-dark">
                             <span>Total Amount:</span>
-                            <span class="text-teal">₱{{ "%.2f"|format(total_price) }}</span>
+                            <span class="text-gold">₱{{ "%.2f"|format(total_price) }}</span>
                         </div>
                     </div>
                     <small class="text-secondary d-block"><i class="bi bi-info-circle me-1"></i> Items will be deducted from active store stock upon confirmation.</small>
                 </div>
                 <div class="modal-footer border-top-0 pt-0">
-                    <button type="button" class="btn btn-light fw-semibold text-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" id="proceedToThankYouBtn" class="btn btn-teal fw-bold px-4">
+                    <button type="button" class="btn btn-light fw-semibold text-secondary px-4 rounded-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="proceedToThankYouBtn" class="btn btn-gold fw-bold px-4">
                         <i class="bi bi-bag-check-fill me-1"></i> Complete Order
                     </button>
                 </div>
@@ -230,6 +299,7 @@
         </div>
     </div>
 
+    <!-- Thank You Modal -->
     <div class="modal fade" id="thankYouModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4 text-center p-4">
@@ -241,8 +311,8 @@
                     <p class="text-muted fs-6 mb-4">
                         Thank you! Please proceed to the shop counter to claim your item.
                     </p>
-                    <form id="checkoutForm" action="{{ url_for('checkout') }}" method="POST">
-                        <button type="submit" class="btn btn-teal btn-lg w-100 fw-bold rounded-3 shadow-sm">
+                    <form id="checkoutForm" action="{{ url_for('shop.checkout') }}" method="POST">
+                        <button type="submit" class="btn btn-gold btn-lg w-100 fw-bold rounded-3">
                             Got it, return to shop <i class="bi bi-arrow-right ms-1"></i>
                         </button>
                     </form>
@@ -252,7 +322,8 @@
     </div>
     {% endif %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const proceedBtn = document.getElementById('proceedToThankYouBtn');
