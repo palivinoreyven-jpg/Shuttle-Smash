@@ -3,3 +3,4 @@ flask-mail
 pymysql
 python-dotenv
 werkzeug
+dnspython
