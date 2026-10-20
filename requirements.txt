@@ -1,6 +1,5 @@
 Flask
 flask-mail
-pymysql
+mysql-connector-python
 python-dotenv
 werkzeug
-dnspython
