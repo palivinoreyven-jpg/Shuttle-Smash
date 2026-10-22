@@ -609,13 +609,12 @@
 
                     {% if is_admin %}
                         {% if b[9] == 'Pending Verification' %}
-                            {% if b[10] %}
+                            <!-- The condition {% if b[10] %} is removed so the button always shows for pending -->
                             <a href="{{ url_for('admin.view_payment_proof', booking_id=b[0]) }}"
                                target="_blank"
                                class="btn btn-sm btn-outline-info fw-bold">
                                 <i class="bi bi-image me-1"></i> View Proof
                             </a>
-                            {% endif %}
                             <form action="{{ url_for('admin.verify_payment', booking_id=b[0]) }}" method="POST" class="d-inline">
                                 <button type="submit" class="btn btn-sm btn-success fw-bold">
                                     <i class="bi bi-check-lg me-1"></i> Verify Payment

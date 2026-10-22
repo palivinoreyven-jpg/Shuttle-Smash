@@ -2,11 +2,11 @@ import os
 import re
 import uuid
 from datetime import datetime, date
-from extensions import cache
 from flask import Blueprint, render_template, request, redirect, url_for, session, send_from_directory
 from werkzeug.utils import secure_filename
 from db import get_db
 from helpers import create_notification, notify_all_admins, broadcast_notification
+from extensions import cache
 import cloudinary
 import cloudinary.uploader
 
@@ -65,17 +65,16 @@ def _save_qr_image(file_storage):
         return None
 
     try:
-        # Upload to Cloudinary instead of local folder
         upload_result = cloudinary.uploader.upload(
             file_storage,
             folder="payment_qr",
-            public_id="current_qr",
-            overwrite=True
+            public_id="current_qr"
         )
         return upload_result.get("secure_url")
     except Exception as e:
         print(f"[CLOUDINARY QR ERROR]: {e}")
         return None
+
 
 def _get_setting(cursor, key, default=None):
     cursor.execute("SELECT setting_value FROM settings WHERE setting_key = %s", (key,))
@@ -174,6 +173,7 @@ def complete_booking(booking_id):
 
     cursor.close()
     conn.close()
+    cache.clear()
 
     if booking[1]:
         try:
@@ -232,6 +232,7 @@ def reject_booking(booking_id):
     cursor.close()
     conn.close()
     cache.clear()
+
     if booking[1]:
         try:
             formatted_date = booking[4].strftime('%B %d, %Y') if hasattr(booking[4], 'strftime') else str(booking[4])
@@ -310,6 +311,7 @@ def verify_payment(booking_id):
 
     cursor.close()
     conn.close()
+    cache.clear()
 
     if booking[1]:
         try:
@@ -367,6 +369,7 @@ def reject_payment(booking_id):
 
     cursor.close()
     conn.close()
+    cache.clear()
 
     if booking[1]:
         try:
@@ -437,6 +440,7 @@ def update_payment_settings():
 
     cursor.close()
     conn.close()
+    cache.clear()
 
     return redirect(url_for('admin.payment_settings_page'))
 
@@ -451,6 +455,7 @@ def remove_payment_qr():
     _set_setting(cursor, 'payment_qr_filename', '')
     cursor.close()
     conn.close()
+    cache.clear()
 
     return redirect(url_for('admin.payment_settings_page'))
 
@@ -476,7 +481,6 @@ def verify_shop_order(order_id):
     if not order:
         cursor.close()
         conn.close()
-        cache.clear()
         return redirect(url_for('shop.my_orders'))
 
     cursor.execute("SELECT id FROM products WHERE name = %s LIMIT 1", (order[1],))
@@ -499,6 +503,7 @@ def verify_shop_order(order_id):
 
     cursor.close()
     conn.close()
+    cache.clear()
 
     if order[0]:
         create_notification(
@@ -534,7 +539,6 @@ def reject_shop_order(order_id):
     if not order:
         cursor.close()
         conn.close()
-        cache.clear()
         return redirect(url_for('shop.my_orders'))
 
     cursor.execute("""
@@ -547,6 +551,7 @@ def reject_shop_order(order_id):
 
     cursor.close()
     conn.close()
+    cache.clear()
 
     if order[0]:
         reason_line = f" Reason: {reason}" if reason else ""
@@ -582,7 +587,6 @@ def ship_shop_order(order_id):
     if not order:
         cursor.close()
         conn.close()
-        cache.clear()
         return redirect(url_for('shop.my_orders'))
 
     cursor.execute("""
@@ -594,6 +598,7 @@ def ship_shop_order(order_id):
 
     cursor.close()
     conn.close()
+    cache.clear()
 
     if order[0]:
         create_notification(
@@ -626,7 +631,6 @@ def complete_shop_order(order_id):
     if not order:
         cursor.close()
         conn.close()
-        cache.clear()
         return redirect(url_for('shop.my_orders'))
 
     cursor.execute("""
@@ -637,6 +641,7 @@ def complete_shop_order(order_id):
 
     cursor.close()
     conn.close()
+    cache.clear()
 
     if order[0]:
         create_notification(
@@ -773,7 +778,7 @@ def restock_product(product_id):
         """, (int(additional_stock), product_id))
         cursor.close()
         conn.close()
-        cache.clear()   
+        cache.clear()
 
     return redirect(url_for('admin.admin_stocks'))
 
@@ -885,6 +890,7 @@ def block_date():
 
     cursor.close()
     conn.close()
+    cache.clear()
 
     formatted_date = blocked_date.strftime('%B %d, %Y')
 
@@ -918,5 +924,17 @@ def unblock_date(blocked_id):
     cursor.execute("DELETE FROM blocked_dates WHERE id = %s", (blocked_id,))
     cursor.close()
     conn.close()
+    cache.clear()
 
     return redirect(url_for('admin.blocked_dates_page'))
+
+
+# ============================================================
+# CLEAR CACHE ROUTE
+# ============================================================
+@admin_bp.route('/admin/clear-cache', methods=['POST'])
+def clear_cache_route():
+    if not session.get('logged_in') or session.get('role') != 'admin':
+        return redirect(url_for('auth.login'))
+    cache.clear()
+    return redirect(request.referrer or url_for('admin.payment_settings_page'))
