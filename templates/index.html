@@ -666,14 +666,15 @@
                                 <i class="bi bi-grid-3x3-gap-fill me-2" style="color: var(--gold-primary);"></i>Court {{ s[1] }}
                             </div>
                             <div class="schedule-detail">
-                                <i class="bi bi-calendar3 me-1"></i>
-                                <span class="mono">{{ s[2] }}</span>
-                                &nbsp;·&nbsp;
-                                <i class="bi bi-clock me-1"></i>
-                                <span class="mono">{{ s[3] }}</span>
-                                &nbsp;·&nbsp;
-                                {{ s[4] }} hr(s)
-                            </div>
+    <i class="bi bi-calendar3 me-1"></i>
+    <span class="mono">{{ s[2] }}</span>
+    &nbsp;·&nbsp;
+    <i class="bi bi-clock me-1"></i>
+    <span class="mono">
+        {{ s[3] }} - 
+        {{ get_booking_end_dt(s[2], s[3], s[4]).strftime('%I:%M %p').lstrip('0') }}
+    </span>
+</div>
                             <div>
                                 <span class="schedule-status">Reserved</span>
                             </div>
@@ -746,7 +747,10 @@
                                 <tr>
                                     <td class="ps-3 cell-primary">{{ hb[1] }}</td>
                                     <td><span class="badge bg-dark">Court {{ hb[4] }}</span></td>
-                                    <td class="cell-mono">{{ hb[5] }}</td>
+                                    <td class="cell-mono">
+    {{ hb[5] }} <br>
+    <small class="text-muted">{{ hb[6] }}</small>
+</td>
                                     <td class="cell-amount">₱{{ "%.2f"|format(hb[8]) }}</td>
                                     <td>
                                         {% if hb[9] == 'Completed' %}

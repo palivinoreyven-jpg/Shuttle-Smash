@@ -811,7 +811,8 @@ def available_courts():
     cursor.execute("""
         SELECT court_number, booking_time, duration_hours
         FROM badminton_bookings
-        WHERE booking_date = %s
+        WHERE booking_date = %s 
+          AND LOWER(status) = 'verified'
     """, (booking_date,))
     rows = cursor.fetchall()
 
