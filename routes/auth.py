@@ -1,11 +1,32 @@
+import os
 import random
+import resend
+from resend.exceptions import ResendError
 from flask import Blueprint, render_template, request, redirect, url_for, session
-from flask_mail import Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from db import get_db
-from extensions import mail
 
 auth_bp = Blueprint('auth', __name__)
+
+# ============================================================
+# RESEND EMAIL CONFIG
+# ============================================================
+# Vercel will automatically inject this from your Environment Variables
+resend.api_key = os.environ.get("RESEND_API_KEY")
+
+def send_otp_email(to_email, subject, code):
+    """Helper function to send OTP via Resend HTTP API"""
+    try:
+        resend.Emails.send({
+            "from": "onboarding@resend.dev",
+            "to": [to_email],
+            "subject": subject,
+            "html": f"<p>Your verification code is: <strong>{code}</strong></p>"
+        })
+        return True
+    except ResendError as e:
+        print(f"[RESEND ERROR]: {e}")
+        return False
 
 
 # ============================================================
@@ -37,15 +58,12 @@ def signup():
                 'code': verification_code
             }
 
-            msg = Message(
-                subject="EBC Badminton - Email Verification",
-                recipients=[email],
-                body=f"Your verification code is: {verification_code}"
+            # Send OTP using Resend
+            send_otp_email(
+                to_email=email, 
+                subject="EBC Badminton - Email Verification", 
+                code=verification_code
             )
-            try:
-                mail.send(msg)
-            except Exception as e:
-                print(f"[MAIL ERROR]: {e}")
 
             return redirect(url_for('auth.verify_email'))
 
@@ -83,7 +101,7 @@ def verify_email():
 
 
 # ============================================================
-# LOGIN — now stores user_name in session
+# LOGIN
 # ============================================================
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -150,15 +168,12 @@ def forgot_password():
             'verified': False
         }
 
-        msg = Message(
-            subject="EBC Badminton - Password Reset Code",
-            recipients=[email],
-            body=f"Your password reset code is: {reset_otp}\n\nIf you did not request this, please ignore this email."
+        # Send OTP using Resend
+        send_otp_email(
+            to_email=email, 
+            subject="EBC Badminton - Password Reset Code", 
+            code=reset_otp
         )
-        try:
-            mail.send(msg)
-        except Exception as e:
-            print(f"\n[MAIL ERROR]: {e}\n")
 
         return redirect(url_for('auth.verify_reset_otp'))
 
