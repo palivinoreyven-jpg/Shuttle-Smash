@@ -42,10 +42,13 @@ def _save_payment_proof(file_storage, booking_id):
         return None
 
     try:
+        # Optimized upload to prevent Vercel timeouts
         upload_result = cloudinary.uploader.upload(
             file_storage,
             folder="payment_proofs",
-            public_id=f"proof_{booking_id}"
+            public_id=f"proof_{booking_id}",
+            quality="auto",
+            fetch_format="auto"
         )
         return upload_result.get("secure_url")
     except Exception as e:
@@ -809,22 +812,19 @@ def available_courts():
     booked_details = []
     for court_num, b_time, b_duration in rows:
         try:
-            # Safely convert the time to a datetime object
             b_start = parse_time_obj(b_time)
             b_end = b_start + timedelta(hours=int(b_duration))
         except Exception as e:
             print(f"Error parsing time: {e}")
             continue
 
-        # Check for overlap
+        # Check if the requested time overlaps with an existing booking
         if req_start < b_end and req_end > b_start:
             try:
-                # Safely format the time
                 start_str = b_start.strftime('%I:%M %p').lstrip('0')
                 end_str = b_end.strftime('%I:%M %p').lstrip('0')
                 time_range = f"{start_str} - {end_str}"
             except AttributeError:
-                # Fallback if strftime fails
                 time_range = f"{b_time} ({b_duration} hr)"
 
             booked_details.append({
