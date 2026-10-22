@@ -594,13 +594,16 @@
                 courtHint.textContent = 'Checking availability…';
                 courtHint.classList.add('text-warn');
 
-                                fetch(`/api/available-courts?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&duration=${encodeURIComponent(duration)}`)
+                fetch(`/api/available-courts?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&duration=${encodeURIComponent(duration)}`)
                     .then(r => r.json())
                     .then(data => {
-                        // data.booked is now an array of objects: [{ court: 2, time_range: "09:00 AM - 11:00 AM" }]
+                        // The new API returns an array of objects: [{ court: 1, time_range: "..." }]
                         const bookedData = data.booked || [];
+                        
+                        // Update the dropdown options
                         applyCourtAvailability(bookedData);
 
+                        // Update the hint text below the dropdown
                         if (bookedData.length === 4) {
                             courtHint.textContent = 'All courts are reserved for this time slot. Try a different time.';
                             courtHint.classList.add('text-warn');
@@ -613,33 +616,31 @@
                             courtHint.classList.remove('text-warn');
                         }
                     })
-                    .catch(() => {
+                    .catch(err => {
+                        console.error("API Error:", err);
                         courtHint.textContent = 'Could not check availability. Please try again.';
                         courtHint.classList.add('text-warn');
                     });
             }
 
-            function resetCourtOptions() {
-                Array.from(courtSelect.options).forEach(opt => {
-                    if (!opt.value) return;
-                    opt.disabled = false;
-                    opt.classList.remove('court-unavailable');
-                    opt.classList.add('court-available');
-                    opt.textContent = 'Court ' + opt.dataset.courtNum;
+            function applyCourtAvailability(bookedData) {
+                // Create a map for quick lookup: { 2: "09:00 AM - 10:00 AM" }
+                const bookedMap = {};
+                bookedData.forEach(item => {
+                    bookedMap[item.court] = item.time_range;
                 });
-            }
 
-            function applyCourtAvailability(bookedSet) {
                 Array.from(courtSelect.options).forEach(opt => {
                     if (!opt.value) return;
                     const num = Number(opt.dataset.courtNum);
-                    const isBooked = bookedSet.has(num);
+                    const isBooked = bookedMap[num] !== undefined;
 
                     if (isBooked) {
                         opt.disabled = true;
                         opt.classList.add('court-unavailable');
                         opt.classList.remove('court-available');
-                        opt.textContent = `Court ${num} — UNAVAILABLE`;
+                        // Display the exact time range!
+                        opt.textContent = `Court ${num} — Occupied ${bookedMap[num]}`;
                         if (courtSelect.value === opt.value) {
                             courtSelect.value = '';
                         }
@@ -649,6 +650,16 @@
                         opt.classList.add('court-available');
                         opt.textContent = `Court ${num}`;
                     }
+                });
+            }
+
+            function resetCourtOptions() {
+                Array.from(courtSelect.options).forEach(opt => {
+                    if (!opt.value) return;
+                    opt.disabled = false;
+                    opt.classList.remove('court-unavailable');
+                    opt.classList.add('court-available');
+                    opt.textContent = 'Court ' + opt.dataset.courtNum;
                 });
             }
 
