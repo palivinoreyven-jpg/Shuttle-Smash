@@ -625,8 +625,12 @@ def submit_payment(booking_id):
         conn.close()
         return redirect(url_for('bookings.booking_payment', booking_id=booking_id))
 
+        print("--- STARTING CLOUDINARY UPLOAD ---")
     saved_name = _save_payment_proof(proof_file, booking_id)
+    print(f"--- CLOUDINARY UPLOAD FINISHED: {saved_name} ---")
+    
     if not saved_name:
+        print("--- UPLOAD FAILED, REDIRECTING BACK ---")
         cursor.close()
         conn.close()
         return redirect(url_for('bookings.booking_payment', booking_id=booking_id))
