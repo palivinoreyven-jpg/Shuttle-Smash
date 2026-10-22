@@ -609,12 +609,12 @@
                     <div class="product-card">
 
                         <!-- Product image (clickable if image exists) -->
-                        {% if p[6] %}
+                                               {% if p[6] %}
                             <div class="product-image-wrap"
                                  data-bs-toggle="modal"
                                  data-bs-target="#shopPhotoModal{{ p[0] }}"
                                  title="Click to view full photo">
-                                <img src="{{ url_for('static', filename='uploads/products/' ~ p[6]) }}"
+                                <img src="{{ p[6] if p[6].startswith('http') else url_for('static', filename='uploads/products/' ~ p[6]) }}"
                                      alt="{{ p[1] }}"
                                      loading="lazy">
                             </div>
@@ -707,7 +707,7 @@
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-4 text-center">
-                        <img src="{{ url_for('static', filename='uploads/products/' ~ p[6]) }}"
+                                               <img src="{{ p[6] if p[6].startswith('http') else url_for('static', filename='uploads/products/' ~ p[6]) }}"
                              alt="{{ p[1] }}"
                              class="photo-modal-img">
                         <div class="mt-3">

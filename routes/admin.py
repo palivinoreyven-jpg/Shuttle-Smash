@@ -6,18 +6,27 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from werkzeug.utils import secure_filename
 from db import get_db
 from helpers import create_notification, notify_all_admins, broadcast_notification
+import cloudinary
+import cloudinary.uploader
 
 admin_bp = Blueprint('admin', __name__)
 
 NAME_HAS_LETTER = re.compile(r'[A-Za-z]')
 
 # ============================================================
+# CLOUDINARY CONFIG
+# ============================================================
+cloudinary.config( 
+  cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'), 
+  api_key = os.getenv('CLOUDINARY_API_KEY'), 
+  api_secret = os.getenv('CLOUDINARY_API_SECRET') 
+)
+
+# ============================================================
 # UPLOAD CONFIG
 # ============================================================
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-
-UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, 'static', 'uploads', 'products')
 PAYMENT_QR_FOLDER = os.path.join(PROJECT_ROOT, 'static', 'uploads', 'payment_qr')
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
@@ -36,15 +45,16 @@ def _save_product_image(file_storage, product_id):
     if not _allowed_file(file_storage.filename):
         return None
 
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-    ext = file_storage.filename.rsplit('.', 1)[1].lower()
-    unique = uuid.uuid4().hex[:10]
-    filename = f"prod_{product_id}_{unique}.{ext}"
-    filename = secure_filename(filename)
-
-    file_storage.save(os.path.join(UPLOAD_FOLDER, filename))
-    return filename
+    try:
+        upload_result = cloudinary.uploader.upload(
+            file_storage,
+            folder="products",
+            public_id=f"prod_{product_id}"
+        )
+        return upload_result.get("secure_url")
+    except Exception as e:
+        print(f"[CLOUDINARY ERROR]: {e}")
+        return None
 
 
 def _save_qr_image(file_storage):
@@ -79,7 +89,7 @@ def _set_setting(cursor, key, value):
 
 
 # ============================================================
-# BOOKING VERIFY / COMPLETE / REJECT (unchanged from before)
+# BOOKING VERIFY / COMPLETE / REJECT
 # ============================================================
 @admin_bp.route('/verify/<int:booking_id>', methods=['POST'])
 def verify_booking(booking_id):
@@ -244,7 +254,7 @@ def reject_booking(booking_id):
 # ============================================================
 @admin_bp.route('/admin/payment-proof/<int:booking_id>', methods=['GET'])
 def view_payment_proof(booking_id):
-    """Serve the payment proof image inline for admin preview."""
+    """Redirect to the Cloudinary URL for the payment proof."""
     if not session.get('logged_in') or session.get('role') != 'admin':
         return redirect(url_for('auth.login'))
 
@@ -258,7 +268,11 @@ def view_payment_proof(booking_id):
     if not row or not row[0]:
         return "No proof uploaded", 404
 
-    from flask import send_from_directory
+    # If it's a Cloudinary URL, redirect to it directly
+    if str(row[0]).startswith('http'):
+        return redirect(row[0])
+
+    # Fallback for old local files
     proof_dir = os.path.join(PROJECT_ROOT, 'static', 'uploads', 'payment_proofs')
     return send_from_directory(proof_dir, row[0])
 
@@ -333,7 +347,6 @@ def reject_payment(booking_id):
         conn.close()
         return redirect(url_for('bookings.my_bookings'))
 
-    # Move to past_bookings with Rejected status
     cursor.execute("""
         INSERT INTO past_bookings 
         (original_booking_id, customer_name, email, contact, court_number, 
@@ -373,7 +386,7 @@ def reject_payment(booking_id):
 
 
 # ============================================================
-# PAYMENT SETTINGS PAGE (upload QR, set wallet info)
+# PAYMENT SETTINGS PAGE
 # ============================================================
 @admin_bp.route('/admin/payment-settings', methods=['GET'])
 def payment_settings_page():
@@ -412,7 +425,6 @@ def update_payment_settings():
     _set_setting(cursor, 'payment_wallet_number', wallet_number)
     _set_setting(cursor, 'payment_instructions', instructions)
 
-    # Handle QR upload
     qr_file = request.files.get('qr_image')
     if qr_file and qr_file.filename:
         saved_name = _save_qr_image(qr_file)
@@ -437,8 +449,10 @@ def remove_payment_qr():
     conn.close()
 
     return redirect(url_for('admin.payment_settings_page'))
+
+
 # ============================================================
-# SHOP ORDER VERIFY / REJECT / SHIP / COMPLETE (unchanged)
+# SHOP ORDER VERIFY / REJECT / SHIP / COMPLETE
 # ============================================================
 @admin_bp.route('/shop-order/verify/<int:order_id>', methods=['POST'])
 def verify_shop_order(order_id):
@@ -630,7 +644,7 @@ def complete_shop_order(order_id):
 
 
 # ============================================================
-# STOCK / PRODUCTS (unchanged)
+# STOCK / PRODUCTS
 # ============================================================
 @admin_bp.route('/admin/stocks')
 def admin_stocks():
@@ -684,11 +698,11 @@ def add_product():
 
         image_file = request.files.get('image')
         if image_file and image_file.filename:
-            saved_name = _save_product_image(image_file, product_id)
-            if saved_name:
+            saved_url = _save_product_image(image_file, product_id)
+            if saved_url:
                 cursor.execute("""
                     UPDATE products SET image_filename = %s WHERE id = %s
-                """, (saved_name, product_id))
+                """, (saved_url, product_id))
 
         cursor.close()
         conn.close()
@@ -720,11 +734,11 @@ def update_product(product_id):
 
         image_file = request.files.get('image')
         if image_file and image_file.filename:
-            saved_name = _save_product_image(image_file, product_id)
-            if saved_name:
+            saved_url = _save_product_image(image_file, product_id)
+            if saved_url:
                 cursor.execute("""
                     UPDATE products SET image_filename = %s WHERE id = %s
-                """, (saved_name, product_id))
+                """, (saved_url, product_id))
 
         cursor.close()
         conn.close()
@@ -777,7 +791,7 @@ def toggle_product(product_id):
 
 
 # ============================================================
-# BLOCKED DATES (unchanged)
+# BLOCKED DATES
 # ============================================================
 @admin_bp.route('/admin/blocked-dates')
 def blocked_dates_page():

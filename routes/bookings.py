@@ -8,20 +8,26 @@ from helpers import (
     CONTACT_REGEX, parse_time_obj, archive_expired_bookings,
     get_booking_end_dt, notify_all_admins
 )
+import cloudinary
+import cloudinary.uploader
 
 bookings_bp = Blueprint('bookings', __name__)
 
 PER_PAGE = 5
 
 # ============================================================
+# CLOUDINARY CONFIG
+# ============================================================
+cloudinary.config( 
+  cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'), 
+  api_key = os.getenv('CLOUDINARY_API_KEY'), 
+  api_secret = os.getenv('CLOUDINARY_API_SECRET') 
+)
+
+# ============================================================
 # UPLOAD CONFIG — payment proofs
 # ============================================================
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-PAYMENT_PROOF_FOLDER = os.path.join(PROJECT_ROOT, 'static', 'uploads', 'payment_proofs')
-
 ALLOWED_PROOF_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
-
 
 def _allowed_proof(filename):
     return (
@@ -29,23 +35,22 @@ def _allowed_proof(filename):
         filename.rsplit('.', 1)[1].lower() in ALLOWED_PROOF_EXTENSIONS
     )
 
-
 def _save_payment_proof(file_storage, booking_id):
     if not file_storage or not file_storage.filename:
         return None
     if not _allowed_proof(file_storage.filename):
         return None
 
-    os.makedirs(PAYMENT_PROOF_FOLDER, exist_ok=True)
-
-    import uuid
-    ext = file_storage.filename.rsplit('.', 1)[1].lower()
-    unique = uuid.uuid4().hex[:10]
-    filename = f"proof_{booking_id}_{unique}.{ext}"
-    filename = secure_filename(filename)
-
-    file_storage.save(os.path.join(PAYMENT_PROOF_FOLDER, filename))
-    return filename
+    try:
+        upload_result = cloudinary.uploader.upload(
+            file_storage,
+            folder="payment_proofs",
+            public_id=f"proof_{booking_id}"
+        )
+        return upload_result.get("secure_url")
+    except Exception as e:
+        print(f"[CLOUDINARY ERROR]: {e}")
+        return None
 
 
 # ============================================================

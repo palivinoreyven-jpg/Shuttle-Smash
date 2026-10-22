@@ -731,8 +731,8 @@
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body p-3 text-center">
-                            {% if p[7] %}
-                                <img src="{{ url_for('static', filename='uploads/products/' ~ p[7]) }}"
+                                                        {% if p[7] %}
+                                <img src="{{ p[7] if p[7].startswith('http') else url_for('static', filename='uploads/products/' ~ p[7]) }}"
                                      alt="{{ p[1] }}"
                                      class="photo-modal-img"
                                      onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\'text-muted py-5\'><i class=\'bi bi-exclamation-triangle fs-1 d-block mb-2\'></i>Image could not be loaded.</div>';">
