@@ -2,6 +2,7 @@ import os
 import re
 import uuid
 from datetime import datetime, date
+from extensions import cache
 from flask import Blueprint, render_template, request, redirect, url_for, session, send_from_directory
 from werkzeug.utils import secure_filename
 from db import get_db
@@ -117,6 +118,7 @@ def verify_booking(booking_id):
 
     cursor.close()
     conn.close()
+    cache.clear()
 
     if booking and booking[1]:
         try:
@@ -229,7 +231,7 @@ def reject_booking(booking_id):
 
     cursor.close()
     conn.close()
-
+    cache.clear()
     if booking[1]:
         try:
             formatted_date = booking[4].strftime('%B %d, %Y') if hasattr(booking[4], 'strftime') else str(booking[4])
@@ -474,6 +476,7 @@ def verify_shop_order(order_id):
     if not order:
         cursor.close()
         conn.close()
+        cache.clear()
         return redirect(url_for('shop.my_orders'))
 
     cursor.execute("SELECT id FROM products WHERE name = %s LIMIT 1", (order[1],))
@@ -531,6 +534,7 @@ def reject_shop_order(order_id):
     if not order:
         cursor.close()
         conn.close()
+        cache.clear()
         return redirect(url_for('shop.my_orders'))
 
     cursor.execute("""
@@ -578,6 +582,7 @@ def ship_shop_order(order_id):
     if not order:
         cursor.close()
         conn.close()
+        cache.clear()
         return redirect(url_for('shop.my_orders'))
 
     cursor.execute("""
@@ -621,6 +626,7 @@ def complete_shop_order(order_id):
     if not order:
         cursor.close()
         conn.close()
+        cache.clear()
         return redirect(url_for('shop.my_orders'))
 
     cursor.execute("""
@@ -708,6 +714,7 @@ def add_product():
 
         cursor.close()
         conn.close()
+        cache.clear()
 
     return redirect(url_for('admin.admin_stocks'))
 
@@ -744,6 +751,7 @@ def update_product(product_id):
 
         cursor.close()
         conn.close()
+        cache.clear()
 
     return redirect(url_for('admin.admin_stocks'))
 
@@ -765,6 +773,7 @@ def restock_product(product_id):
         """, (int(additional_stock), product_id))
         cursor.close()
         conn.close()
+        cache.clear()   
 
     return redirect(url_for('admin.admin_stocks'))
 
@@ -788,6 +797,7 @@ def toggle_product(product_id):
 
     cursor.close()
     conn.close()
+    cache.clear()
 
     return redirect(url_for('admin.admin_stocks'))
 

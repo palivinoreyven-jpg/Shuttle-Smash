@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask
-from extensions import mail
+from extensions import mail, cache
 from helpers import get_booking_end_dt
 from routes.auth import auth_bp
 from routes.bookings import bookings_bp
@@ -32,6 +32,11 @@ app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
 
 # Initialize Mail
 mail.init_app(app)
+
+# Initialize Cache (Stores data in Vercel's RAM)
+app.config['CACHE_TYPE'] = 'SimpleCache'
+app.config['CACHE_DEFAULT_TIMEOUT'] = 60  # Cache expires after 60 seconds
+cache.init_app(app)
 
 # ============================================================
 # Inject utility functions into Jinja2 templates

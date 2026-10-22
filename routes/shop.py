@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from db import get_db
 from helpers import notify_all_admins, create_notification
+from extensions import cache
 
 shop_bp = Blueprint('shop', __name__)
 
@@ -8,6 +9,7 @@ PER_PAGE = 5
 
 
 @shop_bp.route('/shop')
+@cache.cached(timeout=120, query_string=True) # Cache for 2 minutes
 def shop():
     if not session.get('logged_in'):
         return redirect(url_for('auth.login'))
@@ -239,6 +241,7 @@ def checkout():
 # MY ORDERS — closest to done first
 # ============================================================
 @shop_bp.route('/shop/orders')
+@cache.cached(timeout=60, query_string=True, key_prefix=lambda: f"my_orders_{session.get('user_email')}")
 def my_orders():
     if not session.get('logged_in'):
         return redirect(url_for('auth.login'))

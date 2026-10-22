@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify
 from werkzeug.utils import secure_filename
 from db import get_db
+from extensions import cache
 from helpers import (
     CONTACT_REGEX, parse_time_obj, archive_expired_bookings,
     get_booking_end_dt, notify_all_admins
@@ -60,6 +61,7 @@ def _save_payment_proof(file_storage, booking_id):
 # DASHBOARD (index)
 # ============================================================
 @bookings_bp.route('/')
+@cache.cached(timeout=60, query_string=True)
 def index():
     if not session.get('logged_in'):
         return redirect(url_for('auth.login'))
@@ -277,6 +279,7 @@ def index():
 # MY RESERVATIONS
 # ============================================================
 @bookings_bp.route('/bookings')
+@cache.cached(timeout=60, query_string=True, key_prefix=lambda: f"my_bookings_{session.get('user_email')}")
 def my_bookings():
     if not session.get('logged_in'):
         return redirect(url_for('auth.login'))
