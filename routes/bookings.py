@@ -479,10 +479,12 @@ def new_booking():
             req_end = req_start + timedelta(hours=duration_hours)
             formatted_time_str = req_start.strftime("%H:%M:%S")
 
+                       # Only check against VERIFIED bookings so pending ones don't block the slot
             cursor.execute("""
                 SELECT booking_time, duration_hours 
                 FROM badminton_bookings 
                 WHERE court_number = %s AND booking_date = %s
+                  AND LOWER(status) = 'verified'
             """, (court_number, booking_date))
             existing_bookings = cursor.fetchall()
 
