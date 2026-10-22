@@ -378,7 +378,7 @@
                             Current QR Code
                         </h5>
 
-                        <div class="qr-preview">
+                                                <div class="qr-preview">
                             {% if settings.payment_qr_filename %}
                                 <img src="{{ settings.payment_qr_filename if settings.payment_qr_filename.startswith('http') else url_for('static', filename='uploads/payment_qr/' ~ settings.payment_qr_filename) }}"
                                      alt="Payment QR">

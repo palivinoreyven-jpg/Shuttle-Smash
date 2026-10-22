@@ -379,7 +379,7 @@
                                 </h5>
 
                                 <div class="qr-container">
-                                    {% if qr_filename %}
+                                                                        {% if qr_filename %}
                                         <img src="{{ qr_filename if qr_filename.startswith('http') else url_for('static', filename='uploads/payment_qr/' ~ qr_filename) }}"
                                              alt="{{ wallet_name }} QR Code"
                                              class="qr-image">

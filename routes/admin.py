@@ -63,15 +63,18 @@ def _save_qr_image(file_storage):
     if not _allowed_file(file_storage.filename):
         return None
 
-    os.makedirs(PAYMENT_QR_FOLDER, exist_ok=True)
-
-    ext = file_storage.filename.rsplit('.', 1)[1].lower()
-    unique = uuid.uuid4().hex[:10]
-    filename = f"qr_{unique}.{ext}"
-    filename = secure_filename(filename)
-
-    file_storage.save(os.path.join(PAYMENT_QR_FOLDER, filename))
-    return filename
+    try:
+        # Upload to Cloudinary
+        upload_result = cloudinary.uploader.upload(
+            file_storage,
+            folder="payment_qr",
+            public_id="current_qr"
+        )
+        # Return the secure URL
+        return upload_result.get("secure_url")
+    except Exception as e:
+        print(f"[CLOUDINARY ERROR]: {e}")
+        return None
 
 
 def _get_setting(cursor, key, default=None):
