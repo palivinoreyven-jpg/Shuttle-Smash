@@ -15,19 +15,19 @@ auth_bp = Blueprint('auth', __name__)
 resend.api_key = os.environ.get("RESEND_API_KEY")
 
 def send_otp_email(to_email, subject, code):
-    """Helper function to send OTP via Resend HTTP API"""
     try:
-        resend.Emails.send({
-            "from": "onboarding@resend.dev",
+        # Using 'sender' and ensuring errors are caught
+        response = resend.Emails.send({
+            "sender": "onboarding@resend.dev",
             "to": [to_email],
             "subject": subject,
             "html": f"<p>Your verification code is: <strong>{code}</strong></p>"
         })
+        print(f"[RESEND SUCCESS]: {response}")
         return True
-    except ResendError as e:
+    except Exception as e:
         print(f"[RESEND ERROR]: {e}")
         return False
-
 
 # ============================================================
 # SIGNUP
