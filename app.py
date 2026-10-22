@@ -28,7 +28,7 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
 # ============================================================
 # Upload Config — max 7 MB per file
 # ============================================================
-app.config['MAX_CONTENT_LENGTH'] = 7 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
 
 # Initialize Mail
 mail.init_app(app)

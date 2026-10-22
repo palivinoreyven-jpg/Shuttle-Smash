@@ -631,22 +631,28 @@ def submit_payment(booking_id):
         conn.close()
         return redirect(url_for('bookings.booking_payment', booking_id=booking_id))
 
+    # Get the reference number from the form
+    payment_reference = request.form.get('payment_reference', '').strip()
+
+    # Save both the image and the reference number
     cursor.execute("""
         UPDATE badminton_bookings
         SET payment_proof_filename = %s,
+            payment_reference = %s,
             status = 'Pending Verification'
         WHERE id = %s
-    """, (saved_name, booking_id))
+    """, (saved_name, payment_reference, booking_id))
 
     cursor.close()
     conn.close()
 
     try:
+        ref_text = f" Ref No: {payment_reference}." if payment_reference else ""
         notify_all_admins(
             title="Payment Proof Submitted",
             message=(
                 f"{booking[1]} has uploaded payment proof for Reservation #{booking_id} "
-                f"(Court {booking[3]} on {booking[4]}). Total ₱{float(booking[7]):.2f}. "
+                f"(Court {booking[3]} on {booking[4]}). Total ₱{float(booking[7]):.2f}.{ref_text} "
                 f"Please review and verify."
             )
         )
@@ -654,7 +660,6 @@ def submit_payment(booking_id):
         print(f"[PAYMENT NOTIFY ERROR]: {e}")
 
     return redirect(url_for('bookings.payment_success', booking_id=booking_id))
-
 
 @bookings_bp.route('/booking/payment-success/<int:booking_id>', methods=['GET'])
 def payment_success(booking_id):

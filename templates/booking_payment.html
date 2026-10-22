@@ -438,14 +438,20 @@
                                     </li>
                                 </ul>
 
-                                <h5 class="section-subtitle mb-3">
-                                    <i class="bi bi-cloud-upload me-1 text-gold"></i> Upload Proof of Payment
+                                                                <h5 class="section-subtitle mb-3">
+                                    <i class="bi bi-cloud-upload me-1 text-gold"></i> Payment Details
                                 </h5>
 
                                 <form action="{{ url_for('bookings.submit_payment', booking_id=booking[0]) }}"
                                       method="POST"
                                       enctype="multipart/form-data"
                                       id="paymentForm">
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small text-secondary">Reference Number (Optional)</label>
+                                        <input type="text" name="payment_reference" class="form-control" placeholder="e.g., 1002345678901">
+                                        <div class="form-text text-muted" style="font-size: 0.75rem;">Enter the GCash/Maya Ref No. so the admin can verify it faster.</div>
+                                    </div>
 
                                     <label for="proofInput" class="proof-input-wrapper d-block w-100">
                                         <div class="proof-input-icon">
@@ -453,7 +459,7 @@
                                         </div>
                                         <div class="proof-input-label">Click to upload a screenshot of your payment</div>
                                         <div class="proof-input-hint">
-                                            Accepted: PNG, JPG, JPEG, WEBP · Max 7 MB
+                                            Accepted: PNG, JPG, JPEG, WEBP · Max 10 MB
                                         </div>
                                         <div id="proofFilename" class="proof-filename" style="display:none;"></div>
                                         <input type="file"
