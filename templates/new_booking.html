@@ -254,7 +254,11 @@
                             </div>
                         {% endif %}
 
-                        <form id="bookingForm" action="{{ url_for('bookings.new_booking') }}" method="POST">
+                        <!-- PASSING DATA VIA DATA ATTRIBUTES -->
+                        <form id="bookingForm" action="{{ url_for('bookings.new_booking') }}" method="POST" 
+                              data-admin="{{ 'true' if session.get('role') == 'admin' else 'false' }}"
+                              data-blocked="{{ blocked_dates | tojson | forceescape }}">
+                            
                             <div class="row g-3">
 
                                 <div class="col-12">
@@ -313,7 +317,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label" for="inputTime">Start Time (Hourly Slots)</label>
                                     <select id="inputTime" name="booking_time" class="form-select time-select" required>
-                                        <option value="" selected disabled>Choose hourly time...</option>
+                                        <option value="" selected disabled>Choose start time...</option>
                                         <option value="06:00">06:00 AM</option>
                                         <option value="07:00">07:00 AM</option>
                                         <option value="08:00">08:00 AM</option>
@@ -335,6 +339,32 @@
                                 </div>
 
                                 <div class="col-md-6">
+                                    <label class="form-label" for="inputEndTime">End Time</label>
+                                    <select id="inputEndTime" class="form-select time-select" required>
+                                        <option value="" selected disabled>Choose end time...</option>
+                                        <option value="07:00">07:00 AM</option>
+                                        <option value="08:00">08:00 AM</option>
+                                        <option value="09:00">09:00 AM</option>
+                                        <option value="10:00">10:00 AM</option>
+                                        <option value="11:00">11:00 AM</option>
+                                        <option value="12:00">12:00 PM</option>
+                                        <option value="13:00">01:00 PM</option>
+                                        <option value="14:00">02:00 PM</option>
+                                        <option value="15:00">03:00 PM</option>
+                                        <option value="16:00">04:00 PM</option>
+                                        <option value="17:00">05:00 PM</option>
+                                        <option value="18:00">06:00 PM</option>
+                                        <option value="19:00">07:00 PM</option>
+                                        <option value="20:00">08:00 PM</option>
+                                        <option value="21:00">09:00 PM</option>
+                                        <option value="22:00">10:00 PM</option>
+                                        <option value="23:00">11:00 PM</option>
+                                    </select>
+                                    <!-- Hidden input to send the calculated duration to Python -->
+                                    <input type="hidden" id="inputDuration" name="duration_hours" value="1">
+                                </div>
+
+                                <div class="col-md-6">
                                     <label class="form-label" for="inputCourt">Select Court</label>
                                     <select id="inputCourt" name="court_number" class="form-select time-select" required>
                                         <option value="" selected disabled>Choose court...</option>
@@ -344,11 +374,6 @@
                                         <option value="Court 4" data-court-num="4">Court 4</option>
                                     </select>
                                     <div id="courtHint">Pick a date and time to see available courts.</div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label" for="inputDuration">Duration (Hours)</label>
-                                    <input type="number" id="inputDuration" name="duration_hours" class="form-control form-control-custom" min="1" max="8" value="1" required>
                                 </div>
 
                                 <div class="col-12 mt-4">
@@ -428,21 +453,21 @@
             </div>
         </div>
     </div>
-        <!-- Bootstrap 5 JS Bundle -->
+
+    <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Flatpickr -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-    <!-- Jinja-rendered flag for admin state -->
-    <script>
-        const IS_ADMIN = {{ 'true' if session.get('role') == 'admin' else 'false' }};
-        const BLOCKED_DATES = {{ blocked_dates | tojson | safe }};
-    </script>
-
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('bookingForm');
+            
+            // Read the Jinja data from the HTML attributes
+            const IS_ADMIN = form.dataset.admin === 'true';
+            const BLOCKED_DATES = JSON.parse(form.dataset.blocked);
+
             const contactInput = document.getElementById('inputContact');
             const durationInput = document.getElementById('inputDuration');
             const displayTotal = document.getElementById('displayTotal');
@@ -450,6 +475,7 @@
             const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
             const finalConfirmBtn = document.getElementById('finalConfirmBtn');
             const timeSelect = document.getElementById('inputTime');
+            const endTimeSelect = document.getElementById('inputEndTime');
             const dateInput = document.getElementById('inputDate');
             const courtSelect = document.getElementById('inputCourt');
             const courtHint = document.getElementById('courtHint');
@@ -524,10 +550,31 @@
                 displayTotal.textContent = `₱${total.toFixed(2)}`;
             }
 
-            durationInput.addEventListener('input', function () {
-                updateTotal();
-                refreshCourtAvailability();
-            });
+            // ---- Calculate Duration from Start/End Time ----
+            function calculateDuration() {
+                const start = timeSelect.value;
+                const end = endTimeSelect.value;
+                
+                if (start && end) {
+                    const startMinutes = parseInt(start.split(':')[0]) * 60 + parseInt(start.split(':')[1]);
+                    const endMinutes = parseInt(end.split(':')[0]) * 60 + parseInt(end.split(':')[1]);
+                    
+                    if (endMinutes <= startMinutes) {
+                        endTimeSelect.setCustomValidity("End time must be after start time.");
+                        durationInput.value = 0;
+                        displayTotal.textContent = "₱0.00";
+                    } else {
+                        endTimeSelect.setCustomValidity("");
+                        const duration = (endMinutes - startMinutes) / 60;
+                        durationInput.value = duration;
+                        updateTotal();
+                        refreshCourtAvailability();
+                    }
+                }
+            }
+
+            timeSelect.addEventListener('change', calculateDuration);
+            endTimeSelect.addEventListener('change', calculateDuration);
 
             // ============================================
             // COURT AVAILABILITY (AJAX)
@@ -537,7 +584,7 @@
                 const time = timeSelect.value;
                 const duration = durationInput.value || 1;
 
-                if (!date || !time) {
+                if (!date || !time || duration <= 0) {
                     resetCourtOptions();
                     courtHint.textContent = 'Pick a date and time to see available courts.';
                     courtHint.classList.remove('text-warn');
@@ -604,13 +651,12 @@
                 });
             }
 
-            timeSelect.addEventListener('change', refreshCourtAvailability);
-
             // ============================================
             // REVIEW & CONTINUE TO PAYMENT
             // ============================================
             reviewBtn.addEventListener('click', function () {
                 validateContact();
+                calculateDuration(); // Ensure duration is calculated before checking validity
 
                 if (!form.checkValidity()) {
                     form.reportValidity();
@@ -621,8 +667,9 @@
                 const court = courtSelect.value;
                 const date = dateInput.value;
                 const selectedTimeText = timeSelect.options[timeSelect.selectedIndex].text;
+                const selectedEndTimeText = endTimeSelect.options[endTimeSelect.selectedIndex].text;
                 const duration = durationInput.value;
-                const totalAmount = (parseInt(duration) * HOURLY_RATE).toFixed(2);
+                const totalAmount = (parseFloat(duration) * HOURLY_RATE).toFixed(2);
 
                 if (IS_ADMIN) {
                     const customerNameInput = document.getElementById('inputCustomerName');
@@ -635,7 +682,7 @@
                 document.getElementById('modalContact').textContent = contact;
                 document.getElementById('modalCourt').textContent = court;
                 document.getElementById('modalDate').textContent = date;
-                document.getElementById('modalTime').textContent = selectedTimeText;
+                document.getElementById('modalTime').textContent = selectedTimeText + ' - ' + selectedEndTimeText;
                 document.getElementById('modalDuration').textContent = `${duration} Hour(s)`;
                 document.getElementById('modalTotal').textContent = `₱${totalAmount}`;
 
