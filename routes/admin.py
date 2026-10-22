@@ -64,18 +64,17 @@ def _save_qr_image(file_storage):
         return None
 
     try:
-        # Upload to Cloudinary
+        # Upload to Cloudinary instead of local folder
         upload_result = cloudinary.uploader.upload(
             file_storage,
             folder="payment_qr",
-            public_id="current_qr"
+            public_id="current_qr",
+            overwrite=True
         )
-        # Return the secure URL
         return upload_result.get("secure_url")
     except Exception as e:
-        print(f"[CLOUDINARY ERROR]: {e}")
+        print(f"[CLOUDINARY QR ERROR]: {e}")
         return None
-
 
 def _get_setting(cursor, key, default=None):
     cursor.execute("SELECT setting_value FROM settings WHERE setting_key = %s", (key,))
