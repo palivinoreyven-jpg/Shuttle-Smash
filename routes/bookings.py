@@ -796,6 +796,7 @@ def available_courts():
     conn = get_db()
     cursor = conn.cursor()
 
+    # We now select booking_time and duration_hours to show the exact times in the UI
     cursor.execute("""
         SELECT court_number, booking_time, duration_hours
         FROM badminton_bookings
@@ -806,7 +807,7 @@ def available_courts():
     cursor.close()
     conn.close()
 
-    booked_courts = set()
+    booked_details = []
     for court_num, b_time, b_duration in rows:
         try:
             b_start = parse_time_obj(b_time)
@@ -815,6 +816,13 @@ def available_courts():
             continue
 
         if req_start < b_end and req_end > b_start:
-            booked_courts.add(int(court_num))
+            # Format the time to "09:00 AM - 10:00 AM"
+            start_str = b_start.strftime('%I:%M %p').lstrip('0')
+            end_str = b_end.strftime('%I:%M %p').lstrip('0')
+            
+            booked_details.append({
+                'court': int(court_num),
+                'time_range': f"{start_str} - {end_str}"
+            })
 
-    return jsonify({'booked': sorted(booked_courts)})
+    return jsonify({'booked': booked_details})

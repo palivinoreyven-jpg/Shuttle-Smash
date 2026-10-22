@@ -594,17 +594,18 @@
                 courtHint.textContent = 'Checking availability…';
                 courtHint.classList.add('text-warn');
 
-                fetch(`/api/available-courts?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&duration=${encodeURIComponent(duration)}`)
+                                fetch(`/api/available-courts?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&duration=${encodeURIComponent(duration)}`)
                     .then(r => r.json())
                     .then(data => {
-                        const booked = new Set((data.booked || []).map(Number));
-                        applyCourtAvailability(booked);
+                        // data.booked is now an array of objects: [{ court: 2, time_range: "09:00 AM - 11:00 AM" }]
+                        const bookedData = data.booked || [];
+                        applyCourtAvailability(bookedData);
 
-                        if (booked.size === 4) {
+                        if (bookedData.length === 4) {
                             courtHint.textContent = 'All courts are reserved for this time slot. Try a different time.';
                             courtHint.classList.add('text-warn');
-                        } else if (booked.size > 0) {
-                            const names = [...booked].sort().map(n => 'Court ' + n).join(', ');
+                        } else if (bookedData.length > 0) {
+                            const names = bookedData.map(b => `Court ${b.court}`).join(', ');
                             courtHint.textContent = 'Unavailable: ' + names + ' (shown in red).';
                             courtHint.classList.add('text-warn');
                         } else {
