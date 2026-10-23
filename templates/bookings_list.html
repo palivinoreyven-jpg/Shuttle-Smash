@@ -609,7 +609,7 @@
 
                     {% if is_admin %}
                         {% if b[9] == 'Pending Verification' %}
-                            <!-- The condition {% if b[10] %} is removed so the button always shows for pending -->
+                            <!-- View Proof button always shows for pending -->
                             <a href="{{ url_for('admin.view_payment_proof', booking_id=b[0]) }}"
                                target="_blank"
                                class="btn btn-sm btn-outline-info fw-bold">
