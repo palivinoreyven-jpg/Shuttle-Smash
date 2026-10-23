@@ -4,11 +4,11 @@ from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify
 from werkzeug.utils import secure_filename
 from db import get_db
-from extensions import cache
 from helpers import (
     CONTACT_REGEX, parse_time_obj, archive_expired_bookings,
     get_booking_end_dt, notify_all_admins
 )
+from extensions import cache
 import cloudinary
 import cloudinary.uploader
 
@@ -92,7 +92,6 @@ def index():
             'time': n[4].strftime('%b %d, %Y %I:%M %p') if n[4] else ''
         })
 
-    # Counts — reject/cancel bookings are excluded from active counts
     if is_admin:
         cursor.execute("""
             SELECT COUNT(*) FROM badminton_bookings 
@@ -176,7 +175,6 @@ def index():
         """, (PER_PAGE, shop_offset))
         shop_history = cursor.fetchall()
     else:
-        # Only show UPCOMING verified bookings on the public schedule
         cursor.execute("""
             SELECT COUNT(*) FROM badminton_bookings 
             WHERE LOWER(status) = 'verified'
@@ -351,7 +349,6 @@ def my_bookings():
         """, (user_email, PER_PAGE, active_offset))
         active_bookings = cursor.fetchall()
 
-        # History for users — includes Rejected (visible to users)
         cursor.execute("""
             SELECT COUNT(*) FROM past_bookings 
             WHERE email = %s
@@ -482,7 +479,6 @@ def new_booking():
             req_end = req_start + timedelta(hours=duration_hours)
             formatted_time_str = req_start.strftime("%H:%M:%S")
 
-                       # Only check against VERIFIED bookings so pending ones don't block the slot
             cursor.execute("""
                 SELECT booking_time, duration_hours 
                 FROM badminton_bookings 
@@ -512,6 +508,7 @@ def new_booking():
             booking_id = cursor.lastrowid
             cursor.close()
             conn.close()
+            cache.clear()
 
             try:
                 pretty_date = datetime.strptime(booking_date, '%Y-%m-%d').strftime('%B %d, %Y')
@@ -630,20 +627,14 @@ def submit_payment(booking_id):
         conn.close()
         return redirect(url_for('bookings.booking_payment', booking_id=booking_id))
 
-        print("--- STARTING CLOUDINARY UPLOAD ---")
     saved_name = _save_payment_proof(proof_file, booking_id)
-    print(f"--- CLOUDINARY UPLOAD FINISHED: {saved_name} ---")
-    
     if not saved_name:
-        print("--- UPLOAD FAILED, REDIRECTING BACK ---")
         cursor.close()
         conn.close()
         return redirect(url_for('bookings.booking_payment', booking_id=booking_id))
 
-    # Get the reference number from the form
     payment_reference = request.form.get('payment_reference', '').strip()
 
-    # Save both the image and the reference number
     cursor.execute("""
         UPDATE badminton_bookings
         SET payment_proof_filename = %s,
@@ -654,6 +645,7 @@ def submit_payment(booking_id):
 
     cursor.close()
     conn.close()
+    cache.clear()
 
     try:
         ref_text = f" Ref No: {payment_reference}." if payment_reference else ""
@@ -669,6 +661,7 @@ def submit_payment(booking_id):
         print(f"[PAYMENT NOTIFY ERROR]: {e}")
 
     return redirect(url_for('bookings.payment_success', booking_id=booking_id))
+
 
 @bookings_bp.route('/booking/payment-success/<int:booking_id>', methods=['GET'])
 def payment_success(booking_id):
@@ -732,8 +725,9 @@ def view_receipt(transaction_id):
         }
 
     else:
+        # ADDED payment_reference to the queries
         cursor.execute("""
-            SELECT id, customer_name, contact, court_number, booking_date, booking_time, duration_hours, total_amount, status, email 
+            SELECT id, customer_name, contact, court_number, booking_date, booking_time, duration_hours, total_amount, status, email, payment_reference 
             FROM badminton_bookings 
             WHERE id = %s
         """, (transaction_id,))
@@ -741,7 +735,7 @@ def view_receipt(transaction_id):
 
         if not booking:
             cursor.execute("""
-                SELECT id, customer_name, contact, court_number, booking_date, booking_time, duration_hours, total_amount, status, email 
+                SELECT id, customer_name, contact, court_number, booking_date, booking_time, duration_hours, total_amount, status, email, payment_reference 
                 FROM past_bookings 
                 WHERE id = %s
                 LIMIT 1
@@ -750,7 +744,7 @@ def view_receipt(transaction_id):
 
         if not booking:
             cursor.execute("""
-                SELECT id, customer_name, contact, court_number, booking_date, booking_time, duration_hours, total_amount, status, email 
+                SELECT id, customer_name, contact, court_number, booking_date, booking_time, duration_hours, total_amount, status, email, payment_reference 
                 FROM past_bookings 
                 WHERE original_booking_id = %s
                 ORDER BY id DESC
@@ -775,6 +769,7 @@ def view_receipt(transaction_id):
             "type": "Court Booking",
             "status": booking[8] or 'Pending',
             "total_amount": float(booking[7]),
+            "payment_reference": booking[10], # Added reference
             "details": {
                 "court_number": f"Court {booking[3]}",
                 "booking_date": str(booking[4]),
@@ -816,7 +811,7 @@ def available_courts():
     cursor.execute("""
         SELECT court_number, booking_time, duration_hours
         FROM badminton_bookings
-        WHERE booking_date = %s 
+        WHERE booking_date = %s
           AND LOWER(status) = 'verified'
     """, (booking_date,))
     rows = cursor.fetchall()
@@ -833,7 +828,6 @@ def available_courts():
             print(f"Error parsing time: {e}")
             continue
 
-        # Check if the requested time overlaps with an existing booking
         if req_start < b_end and req_end > b_start:
             try:
                 start_str = b_start.strftime('%I:%M %p').lstrip('0')
