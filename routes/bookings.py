@@ -685,7 +685,7 @@ def view_receipt(transaction_id):
 
     if rec_type == 'shop':
         cursor.execute("""
-            SELECT id, user_email, product_name, quantity, total_amount, status 
+            SELECT id, user_email, product_name, quantity, total_amount, status, payment_reference 
             FROM shop_transactions 
             WHERE id = %s
         """, (transaction_id,))
