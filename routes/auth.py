@@ -17,7 +17,7 @@ resend.api_key = os.environ.get("RESEND_API_KEY")
 def send_otp_email(to_email, subject, code):
     """Helper function to send OTP via Resend HTTP API"""
     try:
-        # Changed "sender" back to "from"
+        # Using "from" (not "sender") based on your Vercel logs
         response = resend.Emails.send({
             "from": "onboarding@resend.dev",
             "to": [to_email],
@@ -29,6 +29,7 @@ def send_otp_email(to_email, subject, code):
     except Exception as e:
         print(f"[RESEND ERROR]: {e}")
         return False
+
 
 # ============================================================
 # SIGNUP
