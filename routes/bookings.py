@@ -74,12 +74,13 @@ def index():
     user_email = session.get('user_email')
     is_admin = session.get('role') == 'admin'
 
+    # ONLY FETCH UNREAD NOTIFICATIONS
     cursor.execute("""
         SELECT id, title, message, is_read, created_at
         FROM notifications
-        WHERE user_email = %s
+        WHERE user_email = %s AND is_read = 0
         ORDER BY created_at DESC
-        LIMIT 30
+        LIMIT 15
     """, (user_email,))
     notif_rows = cursor.fetchall()
     notifications_list = []
@@ -274,6 +275,30 @@ def index():
 
 
 # ============================================================
+# CLEAR NOTIFICATIONS ROUTE
+# ============================================================
+@bookings_bp.route('/api/clear-notifications', methods=['POST'])
+def clear_notifications():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    user_email = session.get('user_email')
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Mark all as read so they disappear from the bell
+    cursor.execute("UPDATE notifications SET is_read = 1 WHERE user_email = %s", (user_email,))
+    
+    cursor.close()
+    conn.close()
+    
+    # Clear cache so the dashboard reloads with an empty bell
+    cache.clear()
+    
+    return jsonify({'success': True})
+
+
+# ============================================================
 # MY RESERVATIONS
 # ============================================================
 @bookings_bp.route('/bookings')
@@ -386,8 +411,6 @@ def my_bookings():
         total_history_pages=total_history_pages,
         is_admin=is_admin
     )
-
-
 # ============================================================
 # NEW RESERVATION
 # ============================================================
@@ -725,7 +748,6 @@ def view_receipt(transaction_id):
         }
 
     else:
-        # ADDED payment_reference to the queries
         cursor.execute("""
             SELECT id, customer_name, contact, court_number, booking_date, booking_time, duration_hours, total_amount, status, email, payment_reference 
             FROM badminton_bookings 
@@ -769,7 +791,7 @@ def view_receipt(transaction_id):
             "type": "Court Booking",
             "status": booking[8] or 'Pending',
             "total_amount": float(booking[7]),
-            "payment_reference": booking[10], # Added reference
+            "payment_reference": booking[10],
             "details": {
                 "court_number": f"Court {booking[3]}",
                 "booking_date": str(booking[4]),

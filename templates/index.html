@@ -1,648 +1,3 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - EBC Badminton Court</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
-    <script>
-        (function () {
-            try {
-                const saved = localStorage.getItem('ebc-theme');
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                const theme = saved || (prefersDark ? 'dark' : 'light');
-                document.documentElement.setAttribute('data-bs-theme', theme);
-                document.documentElement.dataset.ebcTheme = theme;
-            } catch (e) {}
-        })();
-    </script>
-
-    <style>
-        :root,
-        html[data-ebc-theme="light"] {
-            --gold-primary: #d4af37;
-            --gold-light: #fef08a;
-            --gold-dark: #996515;
-            --gold-gradient: linear-gradient(135deg, #c9a227 0%, #a67c0a 50%, #7a5b0a 100%);
-            --page-bg: linear-gradient(160deg, #f8fafc 0%, #e2e8f0 100%);
-            --card-bg: #ffffff;
-            --card-border: rgba(226, 232, 240, 0.9);
-            --card-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-            --card-backdrop: none;
-            --text-primary: #0f172a;
-            --text-secondary: #334155;
-            --text-muted: #64748b;
-            --text-faint: #94a3b8;
-            --border-color: #e2e8f0;
-            --border-soft: #f1f5f9;
-            --table-head-bg: #f8fafc;
-            --table-head-text: #64748b;
-            --table-row-hover: rgba(212, 175, 55, 0.07);
-            --table-divider: #f1f5f9;
-            --header-bg: rgba(255, 255, 255, 0.72);
-            --header-border: rgba(212, 175, 55, 0.28);
-            --header-backdrop: blur(20px) saturate(180%);
-            --header-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
-            --sidebar-width: 260px;
-            --sidebar-bg: rgba(255, 255, 255, 0.72);
-            --sidebar-border: rgba(212, 175, 55, 0.25);
-            --sidebar-backdrop: blur(20px) saturate(180%);
-            --sidebar-shadow: 2px 0 12px rgba(15, 23, 42, 0.06);
-            --dropdown-bg: rgba(255, 255, 255, 0.85);
-            --dropdown-backdrop: blur(20px) saturate(180%);
-            --amount-color: #059669;
-            --theme-speed: 250ms;
-        }
-
-        html[data-ebc-theme="dark"] {
-            --gold-primary: #d4af37;
-            --gold-light: #fef08a;
-            --gold-dark: #996515;
-            --gold-gradient: linear-gradient(135deg, #fff5b8 0%, #f4d03f 50%, #d4af37 100%);
-            --page-bg:
-                radial-gradient(circle at 15% 0%, rgba(212, 175, 55, 0.18) 0%, transparent 50%),
-                radial-gradient(circle at 85% 100%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
-                radial-gradient(circle at top center, #1a1e29 0%, #06080c 100%);
-            --card-bg: rgba(30, 36, 48, 0.45);
-            --card-border: rgba(212, 175, 55, 0.22);
-            --card-shadow: 0 12px 45px rgba(0, 0, 0, 0.55), 0 0 30px rgba(212, 175, 55, 0.06);
-            --card-backdrop: blur(22px) saturate(140%);
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
-            --text-faint: #64748b;
-            --border-color: rgba(212, 175, 55, 0.18);
-            --border-soft: rgba(212, 175, 55, 0.1);
-            --table-head-bg: rgba(212, 175, 55, 0.05);
-            --table-head-text: #94a3b8;
-            --table-row-hover: rgba(212, 175, 55, 0.14);
-            --table-divider: rgba(212, 175, 55, 0.1);
-            --header-bg: rgba(10, 25, 47, 0.55);
-            --header-border: rgba(212, 175, 55, 0.3);
-            --header-backdrop: blur(24px) saturate(180%);
-            --header-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            --sidebar-width: 260px;
-            --sidebar-bg: rgba(10, 12, 16, 0.55);
-            --sidebar-border: rgba(212, 175, 55, 0.25);
-            --sidebar-backdrop: blur(26px) saturate(180%);
-            --sidebar-shadow: 4px 0 30px rgba(0, 0, 0, 0.6);
-            --dropdown-bg: rgba(15, 18, 24, 0.75);
-            --dropdown-backdrop: blur(24px) saturate(180%);
-            --amount-color: #4ade80;
-        }
-
-        * {
-            transition: background-color var(--theme-speed) ease,
-                        color var(--theme-speed) ease,
-                        border-color var(--theme-speed) ease;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--page-bg);
-            background-attachment: fixed;
-            min-height: 100vh;
-            color: var(--text-secondary);
-            overflow-x: hidden;
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            position: fixed; top: 0; left: 0;
-            width: var(--sidebar-width); height: 100vh;
-            background: var(--sidebar-bg);
-            backdrop-filter: var(--sidebar-backdrop);
-            -webkit-backdrop-filter: var(--sidebar-backdrop);
-            border-right: 1px solid var(--sidebar-border);
-            box-shadow: var(--sidebar-shadow);
-            z-index: 1045; transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; flex-direction: column; overflow-y: auto;
-        }
-        .sidebar.open { transform: translateX(0); }
-        .sidebar-header { padding: 1.2rem 1rem; border-bottom: 1px solid var(--sidebar-border); display: flex; align-items: center; gap: 0.75rem; }
-        .sidebar-logo { height: 40px; width: auto; object-fit: contain; filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.35)); flex-shrink: 0; }
-        .sidebar-brand-title { font-size: 1rem; font-weight: 800; background: var(--gold-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.15; }
-        .sidebar-brand-sub { font-size: 0.68rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
-        .sidebar-nav { padding: 1rem 0.75rem; flex: 1; }
-        .sidebar-section-label { font-size: 0.7rem; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; padding: 0.5rem 0.75rem; margin-top: 0.5rem; }
-        .sidebar-link { display: flex; align-items: center; gap: 0.85rem; padding: 0.75rem 0.9rem; border-radius: 10px; color: var(--text-secondary); font-weight: 600; font-size: 0.92rem; text-decoration: none; margin-bottom: 0.35rem; border: 1px solid transparent; transition: all 0.2s ease; }
-        .sidebar-link i { font-size: 1.05rem; width: 22px; text-align: center; flex-shrink: 0; }
-        html[data-ebc-theme="light"] .sidebar-link:hover { background: rgba(212, 175, 55, 0.12); border-color: rgba(212, 175, 55, 0.4); color: #0f172a; transform: translateX(3px); }
-        html[data-ebc-theme="dark"] .sidebar-link { color: #e2e8f0; }
-        html[data-ebc-theme="dark"] .sidebar-link:hover { background: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 0.35); color: var(--gold-light); transform: translateX(3px); }
-        .sidebar-link.primary { background: var(--gold-gradient); color: #ffffff !important; box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25); margin-bottom: 0.6rem; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); }
-        .sidebar-link.primary:hover { color: #ffffff !important; box-shadow: 0 6px 18px rgba(212, 175, 55, 0.45); transform: translateX(3px); }
-        html[data-ebc-theme="light"] .sidebar-link.danger { color: #b91c1c; }
-        html[data-ebc-theme="light"] .sidebar-link.danger:hover { background: rgba(220, 38, 38, 0.1); border-color: rgba(220, 38, 38, 0.4); color: #7f1d1d; }
-        html[data-ebc-theme="dark"] .sidebar-link.danger { color: #fca5a5; }
-        html[data-ebc-theme="dark"] .sidebar-link.danger:hover { background: rgba(220, 38, 38, 0.15); border-color: rgba(220, 38, 38, 0.5); color: #ffffff; }
-        .sidebar-footer { padding: 1rem; border-top: 1px solid var(--sidebar-border); font-size: 0.8rem; color: var(--text-muted); }
-        .sidebar-user-name {
-            color: var(--text-primary);
-            font-weight: 700;
-            font-size: 0.9rem;
-            margin-bottom: 0.15rem;
-            word-break: break-word;
-        }
-        .sidebar-user-email {
-            color: var(--text-muted);
-            font-weight: 500;
-            font-size: 0.75rem;
-            word-break: break-all;
-        }
-        .sidebar-backdrop {
-            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35);
-            backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
-            z-index: 1040; opacity: 0; visibility: hidden; pointer-events: none;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .sidebar-backdrop.show { opacity: 1; visibility: visible; pointer-events: auto; }
-
-        /* NAVBAR */
-        .custom-navbar {
-            background: var(--header-bg) !important;
-            backdrop-filter: var(--header-backdrop);
-            -webkit-backdrop-filter: var(--header-backdrop);
-            border-bottom: 1px solid var(--header-border);
-            box-shadow: var(--header-shadow);
-            padding-top: 0.8rem; padding-bottom: 0.8rem;
-        }
-        .navbar-logo { height: 52px; width: auto; object-fit: contain; filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.35)); }
-        .brand-title { font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px; background: var(--gold-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-        html[data-ebc-theme="dark"] .brand-title { filter: drop-shadow(0 0 8px rgba(244, 208, 63, 0.5)); }
-        .sidebar-toggle, .theme-toggle {
-            width: 44px; height: 44px; border-radius: 10px;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 1.35rem; transition: all 0.25s ease; flex-shrink: 0; cursor: pointer;
-        }
-        .theme-toggle { font-size: 1.15rem; position: relative; }
-        html[data-ebc-theme="light"] .sidebar-toggle, html[data-ebc-theme="light"] .theme-toggle,
-        html[data-ebc-theme="light"] .notif-btn {
-            border: 1px solid rgba(212, 175, 55, 0.55); background: rgba(212, 175, 55, 0.12); color: #b48811;
-        }
-        html[data-ebc-theme="light"] .sidebar-toggle:hover, html[data-ebc-theme="light"] .theme-toggle:hover,
-        html[data-ebc-theme="light"] .notif-btn:hover, html[data-ebc-theme="light"] .notif-btn:focus {
-            background: rgba(212, 175, 55, 0.22); border-color: #b48811; color: #7a5b0a;
-            transform: translateY(-1px); box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
-        }
-        html[data-ebc-theme="dark"] .sidebar-toggle, html[data-ebc-theme="dark"] .theme-toggle,
-        html[data-ebc-theme="dark"] .notif-btn {
-            border: 1px solid rgba(212, 175, 55, 0.45); background: rgba(212, 175, 55, 0.08); color: var(--gold-light);
-        }
-        html[data-ebc-theme="dark"] .sidebar-toggle:hover, html[data-ebc-theme="dark"] .theme-toggle:hover,
-        html[data-ebc-theme="dark"] .notif-btn:hover, html[data-ebc-theme="dark"] .notif-btn:focus {
-            background: rgba(212, 175, 55, 0.2); border-color: #d4af37; color: #ffffff;
-            transform: translateY(-1px); box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
-        }
-        .theme-toggle .icon-sun, .theme-toggle .icon-moon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transition: opacity 0.25s ease, transform 0.25s ease; }
-        html[data-ebc-theme="light"] .theme-toggle .icon-sun { opacity: 0; transform: rotate(-90deg) scale(0.6); }
-        html[data-ebc-theme="light"] .theme-toggle .icon-moon { opacity: 1; transform: rotate(0) scale(1); }
-        html[data-ebc-theme="dark"] .theme-toggle .icon-sun { opacity: 1; transform: rotate(0) scale(1); }
-        html[data-ebc-theme="dark"] .theme-toggle .icon-moon { opacity: 0; transform: rotate(90deg) scale(0.6); }
-
-        /* NOTIFICATION BELL */
-        .notif-btn {
-            position: relative; width: 44px; height: 44px; border-radius: 10px;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; transition: all 0.25s ease; flex-shrink: 0;
-        }
-        .notif-badge {
-            position: absolute; top: -6px; right: -6px;
-            background: #dc2626; color: #ffffff;
-            font-size: 0.68rem; font-weight: 700;
-            min-width: 20px; height: 20px; padding: 0 5px;
-            border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;
-            border: 2px solid var(--header-bg); line-height: 1;
-        }
-        .notif-dropdown {
-            min-width: 320px; padding: 0;
-            border: 1px solid var(--header-border);
-            border-radius: 14px; overflow: hidden;
-            background: var(--dropdown-bg);
-            backdrop-filter: var(--dropdown-backdrop);
-            -webkit-backdrop-filter: var(--dropdown-backdrop);
-        }
-        .notif-dropdown .dropdown-header {
-            font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;
-            padding: 0.85rem 1rem; border-bottom: 1px solid var(--header-border);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        html[data-ebc-theme="light"] .notif-dropdown .dropdown-header { color: #b48811; background: rgba(212, 175, 55, 0.1); }
-        html[data-ebc-theme="dark"] .notif-dropdown .dropdown-header { color: var(--gold-light); background: rgba(212, 175, 55, 0.08); }
-        .notif-dropdown .dropdown-item { padding: 0.8rem 1rem; font-size: 0.88rem; white-space: normal; transition: background 0.15s ease; }
-        html[data-ebc-theme="light"] .notif-dropdown .dropdown-item { color: #334155; border-bottom: 1px solid rgba(212, 175, 55, 0.15); }
-        html[data-ebc-theme="light"] .notif-dropdown .dropdown-item:hover { background: rgba(212, 175, 55, 0.1); color: #0f172a; }
-        html[data-ebc-theme="dark"] .notif-dropdown .dropdown-item { color: #e2e8f0; border-bottom: 1px solid rgba(212, 175, 55, 0.08); }
-        html[data-ebc-theme="dark"] .notif-dropdown .dropdown-item:hover { background: rgba(212, 175, 55, 0.1); color: var(--gold-light); }
-        .notif-dropdown .dropdown-item:last-child { border-bottom: none; }
-        .notif-item-title { font-weight: 700; margin-bottom: 0.15rem; color: var(--text-primary); }
-        .notif-item-time { font-size: 0.72rem; color: var(--text-muted); }
-        .notif-empty { padding: 1.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
-        .notif-empty i { font-size: 1.8rem; display: block; margin-bottom: 0.5rem; color: var(--text-faint); }
-
-        .main-wrapper { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        @media (min-width: 992px) { .main-wrapper.shifted { margin-left: var(--sidebar-width); } }
-
-        .btn-gold {
-            background: var(--gold-gradient); color: #ffffff; font-weight: 700;
-            border: none; border-radius: 10px; padding: 0.55rem 1.2rem;
-            transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-        }
-        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(212, 175, 55, 0.4); color: #ffffff; }
-
-        /* CARDS */
-        .white-card, .hero-banner, .metric-card {
-            background: var(--card-bg) !important;
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            color: var(--text-secondary);
-            backdrop-filter: var(--card-backdrop);
-            -webkit-backdrop-filter: var(--card-backdrop);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative; isolation: isolate;
-        }
-        html[data-ebc-theme="dark"] .white-card, html[data-ebc-theme="dark"] .metric-card, html[data-ebc-theme="dark"] .hero-banner {
-            backdrop-filter: blur(22px) saturate(140%);
-            -webkit-backdrop-filter: blur(22px) saturate(140%);
-        }
-        html[data-ebc-theme="dark"] .white-card::before, html[data-ebc-theme="dark"] .metric-card::before, html[data-ebc-theme="dark"] .hero-banner::before {
-            content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(212, 175, 55, 0.1) 40%, transparent 70%);
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor; mask-composite: exclude;
-            pointer-events: none; z-index: 1;
-        }
-        .hero-banner { border-radius: 18px; }
-        .metric-card:hover { transform: translateY(-4px); border-color: rgba(212, 175, 55, 0.6); }
-        html[data-ebc-theme="light"] .metric-card:hover { box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12) !important; }
-        html[data-ebc-theme="dark"] .metric-card:hover { box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3), 0 0 25px rgba(212, 175, 55, 0.12) !important; }
-
-        .white-card .card-header, .white-card .card-footer { background: transparent !important; border-color: var(--border-soft) !important; }
-        .white-card h5, .white-card h6, .hero-banner h3, .metric-card .fs-2 { color: var(--text-primary) !important; }
-
-        .text-dark { color: var(--text-primary) !important; }
-        .text-muted { color: var(--text-muted) !important; }
-        .text-gold { color: #b48811 !important; }
-
-        .bg-light { background-color: var(--table-head-bg) !important; color: var(--text-secondary) !important; }
-        html[data-ebc-theme="dark"] .bg-dark { background-color: rgba(212, 175, 55, 0.15) !important; color: var(--gold-light) !important; }
-
-        .table-v-align td, .table-v-align th { vertical-align: middle; }
-
-        /* TABLE */
-        .white-card table thead th {
-            font-weight: 700; font-size: 0.72rem; letter-spacing: 0.09em; text-transform: uppercase;
-            color: var(--table-head-text); padding: 0.9rem 0.75rem;
-            border-bottom: 1px solid var(--table-divider);
-            background: var(--table-head-bg);
-        }
-        .white-card table tbody td {
-            font-size: 0.9rem; color: var(--text-secondary);
-            padding: 0.85rem 0.75rem; border-color: var(--table-divider);
-        }
-        .white-card table tbody tr { transition: background 0.15s ease; }
-        .white-card table tbody tr:hover { background: var(--table-row-hover); }
-
-        .cell-primary { font-weight: 700; color: var(--text-primary); font-size: 0.94rem; letter-spacing: -0.01em; }
-        .cell-mono { font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace; font-size: 0.82rem; color: var(--text-secondary); }
-        .cell-amount { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--amount-color); }
-        .cell-badge { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.35em 0.75em; border-radius: 20px; }
-
-        /* QUICK ACTION TILES */
-        .quick-action {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 1.25rem 1rem;
-            border-radius: 14px;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 0.9rem;
-            transition: all 0.25s ease;
-            gap: 0.5rem;
-            backdrop-filter: var(--card-backdrop);
-            -webkit-backdrop-filter: var(--card-backdrop);
-        }
-        .quick-action:hover {
-            transform: translateY(-3px);
-            border-color: rgba(212, 175, 55, 0.6);
-            color: var(--text-primary);
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
-        }
-        html[data-ebc-theme="dark"] .quick-action:hover {
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 175, 55, 0.15);
-        }
-        .quick-action-icon { font-size: 1.75rem; color: var(--gold-primary); }
-        .quick-action-count { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
-
-        /* PUBLIC SCHEDULE */
-        .schedule-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.85rem 1rem;
-            border-bottom: 1px solid var(--border-soft);
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        .schedule-row:last-child { border-bottom: none; }
-        .schedule-court {
-            font-weight: 800;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            min-width: 90px;
-        }
-        .schedule-detail {
-            color: var(--text-secondary);
-            font-size: 0.88rem;
-            font-weight: 600;
-            flex: 1;
-        }
-        .schedule-detail .mono {
-            font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
-            font-size: 0.82rem;
-            color: var(--text-secondary);
-        }
-        .schedule-status {
-            font-size: 0.7rem;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            padding: 0.4em 0.85em;
-            border-radius: 20px;
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-        }
-        html[data-ebc-theme="dark"] .schedule-status {
-            background: rgba(220, 38, 38, 0.2);
-            color: #fca5a5;
-            border-color: rgba(220, 38, 38, 0.4);
-        }
-        .schedule-empty {
-            padding: 2rem 1rem;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-        .schedule-empty i { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; color: var(--text-faint); }
-
-        /* PAGINATION */
-        .pagination-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            border-top: 1px solid var(--border-soft);
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .pagination-bar .page-info {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-        .pagination-bar .pagination { margin: 0; }
-        .pagination .page-link {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 0.85rem;
-            padding: 0.35rem 0.7rem;
-        }
-        .pagination .page-link:hover {
-            background: rgba(212, 175, 55, 0.12);
-            border-color: rgba(212, 175, 55, 0.5);
-            color: var(--text-primary);
-        }
-        .pagination .page-item.active .page-link {
-            background: var(--gold-gradient);
-            border-color: var(--gold-primary);
-            color: #ffffff;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-        }
-        .pagination .page-item.disabled .page-link {
-            background: transparent;
-            border-color: var(--border-soft);
-            color: var(--text-faint);
-            opacity: 0.6;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Server-rendered notifications for the bell -->
-    <script>
-        const SERVER_NOTIFICATIONS = {{ notifications | tojson | safe }};
-    </script>
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="appSidebar">
-        <div class="sidebar-header">
-            <img src="{{ url_for('static', filename='images/logo.png') }}"
-                 alt="EBC Logo"
-                 class="sidebar-logo"
-                 onerror="this.onerror=null; this.src='/static/image/logo.png';">
-            <div class="d-flex flex-column">
-                <span class="sidebar-brand-title">Esguerra</span>
-                <span class="sidebar-brand-sub">Badminton Court</span>
-            </div>
-        </div>
-
-        <nav class="sidebar-nav">
-            <div class="sidebar-section-label">Quick Actions</div>
-
-            <a href="{{ url_for('bookings.index') }}"
-               class="sidebar-link {% if request.endpoint == 'bookings.index' %}primary{% endif %}">
-                <i class="bi bi-speedometer2"></i>
-                <span>Dashboard</span>
-            </a>
-
-            <a href="{{ url_for('bookings.my_bookings') }}"
-               class="sidebar-link {% if request.endpoint == 'bookings.my_bookings' %}primary{% endif %}">
-                <i class="bi bi-calendar-check"></i>
-                <span>My Reservations</span>
-            </a>
-
-            <a href="{{ url_for('shop.my_orders') }}"
-               class="sidebar-link {% if request.endpoint == 'shop.my_orders' %}primary{% endif %}">
-                <i class="bi bi-bag-check"></i>
-                <span>My Orders</span>
-            </a>
-
-            <a href="{{ url_for('shop.shop') }}"
-               class="sidebar-link {% if request.endpoint == 'shop.shop' %}primary{% endif %}">
-                <i class="bi bi-shop"></i>
-                <span>Pro Shop</span>
-            </a>
-
-            {% if session.get('role') == 'admin' %}
-            <a href="{{ url_for('admin.admin_stocks') }}"
-               class="sidebar-link {% if request.endpoint == 'admin.admin_stocks' %}primary{% endif %}">
-                <i class="bi bi-boxes"></i>
-                <span>Inventory</span>
-            </a>
-
-            <a href="{{ url_for('admin.blocked_dates_page') }}"
-               class="sidebar-link {% if request.endpoint == 'admin.blocked_dates_page' %}primary{% endif %}">
-                <i class="bi bi-calendar-x"></i>
-                <span>Blocked Dates</span>
-            </a>
-
-            <a href="{{ url_for('admin.payment_settings_page') }}"
-               class="sidebar-link {% if request.endpoint == 'admin.payment_settings_page' %}primary{% endif %}">
-                <i class="bi bi-qr-code"></i>
-                <span>Payment Settings</span>
-            </a>
-            {% endif %}
-
-            <div class="sidebar-section-label">Account</div>
-
-            <a href="#" class="sidebar-link danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Logout</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-user-name">{{ session.get('user_name') or 'User' }}</div>
-            <div class="sidebar-user-email">{{ session.get('user_email') }}</div>
-        </div>
-    </aside>
-
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-        <!-- MAIN WRAPPER -->
-    <div class="main-wrapper" id="mainWrapper">
-
-        <nav class="navbar navbar-expand-lg sticky-top custom-navbar">
-            <div class="container-fluid px-3 px-lg-4 d-flex align-items-center justify-content-between">
-
-                <div class="d-flex align-items-center">
-                    <button type="button" class="sidebar-toggle me-2" id="sidebarToggle" aria-label="Toggle sidebar">
-                        <i class="bi bi-list"></i>
-                    </button>
-
-                    <button type="button" class="theme-toggle me-3" id="themeToggle" aria-label="Toggle theme" title="Toggle light / dark mode">
-                        <span class="icon-sun"><i class="bi bi-sun-fill"></i></span>
-                        <span class="icon-moon"><i class="bi bi-moon-stars-fill"></i></span>
-                    </button>
-
-                    <a class="navbar-brand d-flex align-items-center gap-3 m-0" href="{{ url_for('bookings.index') }}">
-                        <img src="{{ url_for('static', filename='images/logo.png') }}"
-                             alt="EBC Logo"
-                             class="navbar-logo"
-                             onerror="this.onerror=null; this.src='/static/image/logo.png';">
-                        <span class="brand-title">Esguerra Badminton Court</span>
-                    </a>
-                </div>
-
-                <!-- Notification Bell -->
-                <div class="dropdown">
-                    <button type="button"
-                            class="notif-btn"
-                            id="notifBtn"
-                            data-bs-toggle="dropdown"
-                            data-bs-auto-close="outside"
-                            aria-expanded="false"
-                            aria-label="Notifications">
-                        <i class="bi bi-bell"></i>
-                        <span class="notif-badge" id="notifBadge">0</span>
-                    </button>
-
-                    <div class="dropdown-menu dropdown-menu-end notif-dropdown" aria-labelledby="notifBtn">
-                        <div class="dropdown-header">
-                            <span><i class="bi bi-bell-fill me-1"></i> Notifications</span>
-                            <button type="button"
-                                    class="btn btn-link btn-sm text-decoration-none p-0"
-                                    style="color: inherit; font-size: 0.72rem;"
-                                    id="notifClearBtn">
-                                Clear all
-                            </button>
-                        </div>
-
-                        <div id="notifList">
-                            <div class="notif-empty" id="notifEmpty">
-                                <i class="bi bi-bell-slash"></i>
-                                No new notifications
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </nav>
-
-        <div class="container py-4 mb-5">
-
-            <!-- Flash messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                {% for category, message in messages %}
-                  <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
-                    <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                  </div>
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
-
-            <!-- Hero Welcome Banner -->
-            <div class="p-4 mb-4 hero-banner d-flex flex-wrap justify-content-between align-items-center gap-3">
-                <div>
-                    <h3 class="fw-bold mb-1">Welcome, <span class="text-gold">{{ session.get('user_name') or session.get('user_email') }}</span>! 👋</h3>
-                    <p class="text-muted mb-0 d-flex align-items-center gap-2">
-                        Role:
-                        <span class="badge {% if session.get('role') == 'admin' %}bg-danger-subtle text-danger border border-danger-subtle{% else %}bg-primary-subtle text-primary border border-primary-subtle{% endif %} rounded-pill px-3 py-1 fw-semibold">
-                            {{ session.get('role')|upper }}
-                        </span>
-                    </p>
-                </div>
-                <a href="{{ url_for('bookings.new_booking') }}" class="btn btn-gold shadow-sm fw-bold">
-                    <i class="bi bi-plus-circle me-1.5"></i> Reserve Court Now
-                </a>
-            </div>
-
-            <!-- Quick Action Tiles -->
-            <div class="row g-3 mb-4">
-                <div class="col-6 col-md-3">
-                    <a href="{{ url_for('bookings.my_bookings') }}" class="quick-action">
-                        <i class="bi bi-calendar-check quick-action-icon"></i>
-                        <span>My Reservations</span>
-                        <span class="quick-action-count">{{ active_bookings_count }} active</span>
-                    </a>
-                </div>
-                <div class="col-6 col-md-3">
-                    <a href="{{ url_for('shop.my_orders') }}" class="quick-action">
-                        <i class="bi bi-bag-check quick-action-icon"></i>
-                        <span>My Orders</span>
-                        <span class="quick-action-count">{{ active_orders_count }} active</span>
-                    </a>
-                </div>
-                <div class="col-6 col-md-3">
-                    <a href="{{ url_for('shop.view_cart') }}" class="quick-action">
-                        <i class="bi bi-cart3 quick-action-icon"></i>
-                        <span>My Cart</span>
-                        <span class="quick-action-count">{{ cart_count }} item{% if cart_count != 1 %}s{% endif %}</span>
-                    </a>
-                </div>
-                <div class="col-6 col-md-3">
-                    <a href="{{ url_for('shop.shop') }}" class="quick-action">
-                        <i class="bi bi-shop quick-action-icon"></i>
-                        <span>Pro Shop</span>
-                        <span class="quick-action-count">Browse gear</span>
-                    </a>
-                </div>
-            </div>
-
             <!-- ============================================
                  USER VIEW: Public Schedule
                  ============================================ -->
@@ -650,9 +5,7 @@
             <div class="card white-card mb-4">
                 <div class="card-header py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div class="d-flex align-items-center gap-2">
-                        <h5 class="fw-bold mb-0">
-                            <i class="bi bi-calendar-week me-2 text-gold"></i> Upcoming Court Schedule
-                        </h5>
+                        <h5 class="fw-bold mb-0"><i class="bi bi-calendar-week me-2 text-gold"></i> Upcoming Court Schedule</h5>
                         <span class="badge bg-light text-dark border">Everyone's Reserved Slots</span>
                     </div>
                     <small class="text-muted">Verified bookings only</small>
@@ -662,22 +15,17 @@
                     {% if public_schedule %}
                         {% for s in public_schedule %}
                         <div class="schedule-row">
-                            <div class="schedule-court">
-                                <i class="bi bi-grid-3x3-gap-fill me-2" style="color: var(--gold-primary);"></i>Court {{ s[1] }}
-                            </div>
+                            <div class="schedule-court"><i class="bi bi-grid-3x3-gap-fill me-2" style="color: var(--gold-primary);"></i>Court {{ s[1] }}</div>
                             <div class="schedule-detail">
-    <i class="bi bi-calendar3 me-1"></i>
-    <span class="mono">{{ s[2] }}</span>
-    &nbsp;·&nbsp;
-    <i class="bi bi-clock me-1"></i>
-    <span class="mono">
-        {{ s[3] }} - 
-        {{ get_booking_end_dt(s[2], s[3], s[4]).strftime('%I:%M %p').lstrip('0') }}
-    </span>
-</div>
-                            <div>
-                                <span class="schedule-status">Reserved</span>
+                                <i class="bi bi-calendar3 me-1"></i><span class="mono">{{ s[2] }}</span>
+                                &nbsp;·&nbsp;
+                                <i class="bi bi-clock me-1"></i>
+                                <span class="mono">
+                                    {{ s[3] }} - 
+                                    {{ get_booking_end_dt(s[2], s[3], s[4]).strftime('%I:%M %p').lstrip('0') }}
+                                </span>
                             </div>
+                            <div><span class="schedule-status">Reserved</span></div>
                         </div>
                         {% endfor %}
                     {% else %}
@@ -694,9 +42,7 @@
                     <nav>
                         <ul class="pagination pagination-sm">
                             <li class="page-item {% if schedule_page <= 1 %}disabled{% endif %}">
-                                <a class="page-link" href="{{ url_for('bookings.index', dash_schedule_page=schedule_page-1) }}">
-                                    <i class="bi bi-chevron-left"></i>
-                                </a>
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_schedule_page=schedule_page-1) }}"><i class="bi bi-chevron-left"></i></a>
                             </li>
                             {% for p in range(1, total_schedule_pages + 1) %}
                             <li class="page-item {% if p == schedule_page %}active{% endif %}">
@@ -704,9 +50,7 @@
                             </li>
                             {% endfor %}
                             <li class="page-item {% if schedule_page >= total_schedule_pages %}disabled{% endif %}">
-                                <a class="page-link" href="{{ url_for('bookings.index', dash_schedule_page=schedule_page+1) }}">
-                                    <i class="bi bi-chevron-right"></i>
-                                </a>
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_schedule_page=schedule_page+1) }}"><i class="bi bi-chevron-right"></i></a>
                             </li>
                         </ul>
                     </nav>
@@ -722,9 +66,7 @@
             <div class="card white-card mb-4">
                 <div class="card-header py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div class="d-flex align-items-center gap-2">
-                        <h5 class="fw-bold mb-0">
-                            <i class="bi bi-journal-text me-2 text-gold"></i> Past Bookings History
-                        </h5>
+                        <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-gold"></i> Past Bookings History</h5>
                         <span class="badge bg-light text-dark border">All Records</span>
                     </div>
                 </div>
@@ -747,10 +89,7 @@
                                 <tr>
                                     <td class="ps-3 cell-primary">{{ hb[1] }}</td>
                                     <td><span class="badge bg-dark">Court {{ hb[4] }}</span></td>
-                                    <td class="cell-mono">
-    {{ hb[5] }} <br>
-    <small class="text-muted">{{ hb[6] }}</small>
-</td>
+                                    <td class="cell-mono">{{ hb[5] }}</td>
                                     <td class="cell-amount">₱{{ "%.2f"|format(hb[8]) }}</td>
                                     <td>
                                         {% if hb[9] == 'Completed' %}
@@ -764,16 +103,11 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-end pe-3">
-                                        <a href="{{ url_for('bookings.view_receipt', transaction_id=hb[0]) }}?type=booking"
-                                           class="btn btn-sm btn-outline-warning fw-bold">
-                                            <i class="bi bi-receipt me-1"></i> View Receipt
-                                        </a>
+                                        <a href="{{ url_for('bookings.view_receipt', transaction_id=hb[0]) }}?type=booking" class="btn btn-sm btn-outline-warning fw-bold"><i class="bi bi-receipt me-1"></i> View Receipt</a>
                                     </td>
                                 </tr>
                                 {% else %}
-                                <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">No past bookings.</td>
-                                </tr>
+                                <tr><td colspan="6" class="text-center py-4 text-muted">No past bookings.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -786,9 +120,7 @@
                     <nav>
                         <ul class="pagination pagination-sm">
                             <li class="page-item {% if hist_page <= 1 %}disabled{% endif %}">
-                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page-1, dash_shop_page=shop_page) }}">
-                                    <i class="bi bi-chevron-left"></i>
-                                </a>
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page-1, dash_shop_page=shop_page) }}"><i class="bi bi-chevron-left"></i></a>
                             </li>
                             {% for p in range(1, total_hist_pages + 1) %}
                             <li class="page-item {% if p == hist_page %}active{% endif %}">
@@ -796,9 +128,7 @@
                             </li>
                             {% endfor %}
                             <li class="page-item {% if hist_page >= total_hist_pages %}disabled{% endif %}">
-                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page+1, dash_shop_page=shop_page) }}">
-                                    <i class="bi bi-chevron-right"></i>
-                                </a>
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page+1, dash_shop_page=shop_page) }}"><i class="bi bi-chevron-right"></i></a>
                             </li>
                         </ul>
                     </nav>
@@ -806,15 +136,11 @@
                 {% endif %}
             </div>
 
-            <!-- ============================================
-                 ADMIN VIEW: Shop Order History
-                 ============================================ -->
+            <!-- ADMIN VIEW: Shop Order History -->
             <div class="card white-card mb-4">
                 <div class="card-header py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div class="d-flex align-items-center gap-2">
-                        <h5 class="fw-bold mb-0">
-                            <i class="bi bi-box-seam me-2 text-success"></i> Shop Order History
-                        </h5>
+                        <h5 class="fw-bold mb-0"><i class="bi bi-box-seam me-2 text-success"></i> Shop Order History</h5>
                         <span class="badge bg-light text-dark border">All Records</span>
                     </div>
                 </div>
@@ -851,16 +177,11 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-end pe-3">
-                                        <a href="{{ url_for('bookings.view_receipt', transaction_id=sh[0]) }}?type=shop"
-                                           class="btn btn-sm btn-outline-warning fw-bold">
-                                            <i class="bi bi-receipt me-1"></i> View Receipt
-                                        </a>
+                                        <a href="{{ url_for('bookings.view_receipt', transaction_id=sh[0]) }}?type=shop" class="btn btn-sm btn-outline-warning fw-bold"><i class="bi bi-receipt me-1"></i> View Receipt</a>
                                     </td>
                                 </tr>
                                 {% else %}
-                                <tr>
-                                    <td colspan="7" class="text-center py-4 text-muted">No past orders.</td>
-                                </tr>
+                                <tr><td colspan="7" class="text-center py-4 text-muted">No past orders.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -873,9 +194,7 @@
                     <nav>
                         <ul class="pagination pagination-sm">
                             <li class="page-item {% if shop_page <= 1 %}disabled{% endif %}">
-                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page, dash_shop_page=shop_page-1) }}">
-                                    <i class="bi bi-chevron-left"></i>
-                                </a>
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page, dash_shop_page=shop_page-1) }}"><i class="bi bi-chevron-left"></i></a>
                             </li>
                             {% for p in range(1, total_shop_pages + 1) %}
                             <li class="page-item {% if p == shop_page %}active{% endif %}">
@@ -883,9 +202,7 @@
                             </li>
                             {% endfor %}
                             <li class="page-item {% if shop_page >= total_shop_pages %}disabled{% endif %}">
-                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page, dash_shop_page=shop_page+1) }}">
-                                    <i class="bi bi-chevron-right"></i>
-                                </a>
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page, dash_shop_page=shop_page+1) }}"><i class="bi bi-chevron-right"></i></a>
                             </li>
                         </ul>
                     </nav>
@@ -893,9 +210,7 @@
                 {% endif %}
             </div>
 
-            <!-- ============================================
-                 ADMIN CHARTS
-                 ============================================ -->
+            <!-- ADMIN CHARTS -->
             {% if chart_data %}
             <div class="row g-4 mb-4">
                 <div class="col-lg-8">
@@ -939,44 +254,31 @@
             </div>
             {% endif %}
             {% endif %}
-
         </div>
     </div>
 
-    <!-- ============================================
-         LOGOUT CONFIRMATION MODAL
-         ============================================ -->
+    <!-- LOGOUT MODAL -->
     <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
                 <div class="modal-header text-white" style="background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);">
-                    <h5 class="modal-title fw-bold" id="logoutModalLabel">
-                        <i class="bi bi-box-arrow-right me-2"></i>Log out?
-                    </h5>
+                    <h5 class="modal-title fw-bold" id="logoutModalLabel"><i class="bi bi-box-arrow-right me-2"></i>Log out?</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4 text-center">
-                    <div style="font-size: 3.5rem; color: #dc2626; margin-bottom: 0.75rem;">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                    </div>
+                    <div style="font-size: 3.5rem; color: #dc2626; margin-bottom: 0.75rem;"><i class="bi bi-exclamation-triangle-fill"></i></div>
                     <h5 class="fw-bold mb-2" style="color: var(--text-primary);">Are you sure you want to log out?</h5>
-                    <p class="text-muted mb-0 small">
-                        You'll need to sign in again to access your reservations, orders, and shop.
-                    </p>
+                    <p class="text-muted mb-0 small">You'll need to sign in again to access your reservations, orders, and shop.</p>
                 </div>
                 <div class="modal-footer bg-light border-0 justify-content-center gap-2 pb-4">
-                    <button type="button" class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal">
-                        <i class="bi bi-x-lg me-1"></i> Cancel
-                    </button>
-                    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger fw-bold px-4 rounded-3">
-                        <i class="bi bi-box-arrow-right me-1"></i> Yes, Log Out
-                    </a>
+                    <button type="button" class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i> Cancel</button>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger fw-bold px-4 rounded-3"><i class="bi bi-box-arrow-right me-1"></i> Yes, Log Out</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle -->
+    <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- THEME TOGGLE -->
@@ -1038,7 +340,7 @@
         });
     </script>
 
-    <!-- NOTIFICATION BELL -->
+    <!-- NOTIFICATION BELL LOGIC -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const notifBadge = document.getElementById('notifBadge');
@@ -1080,11 +382,25 @@
                     notifBadge.style.display = 'none';
                 }
             }
+
             notifClearBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
-                notifications = [];
-                renderNotifications();
+                
+                // Call the backend to mark them as read
+                fetch('/api/clear-notifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        notifications = [];
+                        renderNotifications();
+                    }
+                })
+                .catch(err => console.error("Error clearing notifications:", err));
             });
+            
             renderNotifications();
         });
     </script>
@@ -1188,6 +504,513 @@
         })();
     </script>
     {% endif %}
+</body>
+</html>
+            <!-- ============================================
+                 USER VIEW: Public Schedule
+                 ============================================ -->
+            {% if not is_admin %}
+            <div class="card white-card mb-4">
+                <div class="card-header py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-calendar-week me-2 text-gold"></i> Upcoming Court Schedule</h5>
+                        <span class="badge bg-light text-dark border">Everyone's Reserved Slots</span>
+                    </div>
+                    <small class="text-muted">Verified bookings only</small>
+                </div>
 
+                <div class="card-body p-0">
+                    {% if public_schedule %}
+                        {% for s in public_schedule %}
+                        <div class="schedule-row">
+                            <div class="schedule-court"><i class="bi bi-grid-3x3-gap-fill me-2" style="color: var(--gold-primary);"></i>Court {{ s[1] }}</div>
+                            <div class="schedule-detail">
+                                <i class="bi bi-calendar3 me-1"></i><span class="mono">{{ s[2] }}</span>
+                                &nbsp;·&nbsp;
+                                <i class="bi bi-clock me-1"></i>
+                                <span class="mono">
+                                    {{ s[3] }} - 
+                                    {{ get_booking_end_dt(s[2], s[3], s[4]).strftime('%I:%M %p').lstrip('0') }}
+                                </span>
+                            </div>
+                            <div><span class="schedule-status">Reserved</span></div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="schedule-empty">
+                            <i class="bi bi-calendar-x"></i>
+                            No verified bookings yet. All courts are open!
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if total_schedule_pages > 1 %}
+                <div class="pagination-bar">
+                    <span class="page-info">Page {{ schedule_page }} of {{ total_schedule_pages }}</span>
+                    <nav>
+                        <ul class="pagination pagination-sm">
+                            <li class="page-item {% if schedule_page <= 1 %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_schedule_page=schedule_page-1) }}"><i class="bi bi-chevron-left"></i></a>
+                            </li>
+                            {% for p in range(1, total_schedule_pages + 1) %}
+                            <li class="page-item {% if p == schedule_page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_schedule_page=p) }}">{{ p }}</a>
+                            </li>
+                            {% endfor %}
+                            <li class="page-item {% if schedule_page >= total_schedule_pages %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_schedule_page=schedule_page+1) }}"><i class="bi bi-chevron-right"></i></a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- ============================================
+                 ADMIN VIEW: Past Bookings History
+                 ============================================ -->
+            {% if is_admin %}
+            <div class="card white-card mb-4">
+                <div class="card-header py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-gold"></i> Past Bookings History</h5>
+                        <span class="badge bg-light text-dark border">All Records</span>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-v-align mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Customer</th>
+                                    <th>Court</th>
+                                    <th>Date</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for hb in history_bookings %}
+                                <tr>
+                                    <td class="ps-3 cell-primary">{{ hb[1] }}</td>
+                                    <td><span class="badge bg-dark">Court {{ hb[4] }}</span></td>
+                                    <td class="cell-mono">{{ hb[5] }}</td>
+                                    <td class="cell-amount">₱{{ "%.2f"|format(hb[8]) }}</td>
+                                    <td>
+                                        {% if hb[9] == 'Completed' %}
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle cell-badge">Completed</span>
+                                        {% elif hb[9] == 'Rejected' %}
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle cell-badge">Rejected</span>
+                                        {% elif hb[9] == 'Cancelled' %}
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle cell-badge">Cancelled</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary cell-badge">{{ hb[9] }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <a href="{{ url_for('bookings.view_receipt', transaction_id=hb[0]) }}?type=booking" class="btn btn-sm btn-outline-warning fw-bold"><i class="bi bi-receipt me-1"></i> View Receipt</a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="6" class="text-center py-4 text-muted">No past bookings.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {% if total_hist_pages > 1 %}
+                <div class="pagination-bar">
+                    <span class="page-info">Page {{ hist_page }} of {{ total_hist_pages }}</span>
+                    <nav>
+                        <ul class="pagination pagination-sm">
+                            <li class="page-item {% if hist_page <= 1 %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page-1, dash_shop_page=shop_page) }}"><i class="bi bi-chevron-left"></i></a>
+                            </li>
+                            {% for p in range(1, total_hist_pages + 1) %}
+                            <li class="page-item {% if p == hist_page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=p, dash_shop_page=shop_page) }}">{{ p }}</a>
+                            </li>
+                            {% endfor %}
+                            <li class="page-item {% if hist_page >= total_hist_pages %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page+1, dash_shop_page=shop_page) }}"><i class="bi bi-chevron-right"></i></a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ADMIN VIEW: Shop Order History -->
+            <div class="card white-card mb-4">
+                <div class="card-header py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-box-seam me-2 text-success"></i> Shop Order History</h5>
+                        <span class="badge bg-light text-dark border">All Records</span>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-v-align mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Order #</th>
+                                    <th>Customer</th>
+                                    <th>Item</th>
+                                    <th>Total</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sh in shop_history %}
+                                <tr>
+                                    <td class="ps-3 cell-mono">#{{ sh[0] }}</td>
+                                    <td class="cell-mono">{{ sh[1] }}</td>
+                                    <td class="cell-primary">{{ sh[2] }}</td>
+                                    <td class="cell-amount">₱{{ "%.2f"|format(sh[4]) }}</td>
+                                    <td><small class="text-muted">{{ sh[5] }}</small></td>
+                                    <td>
+                                        {% if sh[6] == 'Completed' %}
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle cell-badge">Completed</span>
+                                        {% elif sh[6] == 'Rejected' %}
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle cell-badge">Rejected</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary cell-badge">{{ sh[6] }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <a href="{{ url_for('bookings.view_receipt', transaction_id=sh[0]) }}?type=shop" class="btn btn-sm btn-outline-warning fw-bold"><i class="bi bi-receipt me-1"></i> View Receipt</a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="7" class="text-center py-4 text-muted">No past orders.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {% if total_shop_pages > 1 %}
+                <div class="pagination-bar">
+                    <span class="page-info">Page {{ shop_page }} of {{ total_shop_pages }}</span>
+                    <nav>
+                        <ul class="pagination pagination-sm">
+                            <li class="page-item {% if shop_page <= 1 %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page, dash_shop_page=shop_page-1) }}"><i class="bi bi-chevron-left"></i></a>
+                            </li>
+                            {% for p in range(1, total_shop_pages + 1) %}
+                            <li class="page-item {% if p == shop_page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page, dash_shop_page=p) }}">{{ p }}</a>
+                            </li>
+                            {% endfor %}
+                            <li class="page-item {% if shop_page >= total_shop_pages %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('bookings.index', dash_hist_page=hist_page, dash_shop_page=shop_page+1) }}"><i class="bi bi-chevron-right"></i></a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ADMIN CHARTS -->
+            {% if chart_data %}
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="card white-card h-100">
+                        <div class="card-header py-3 border-bottom d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-bar-chart-line-fill text-gold me-2"></i> 7-Day Revenue Breakdown</h6>
+                            <span class="badge bg-light text-secondary border">Past 7 Days</span>
+                        </div>
+                        <div class="card-body p-3">
+                            <canvas id="weeklyRevenueChart" style="max-height: 280px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card white-card h-100">
+                        <div class="card-header py-3 border-bottom">
+                            <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-pie-chart-fill text-success me-2"></i> Revenue Share</h6>
+                        </div>
+                        <div class="card-body p-3 d-flex flex-column justify-content-center align-items-center">
+                            <canvas id="revenueShareChart" style="max-height: 210px;"></canvas>
+                            <div class="mt-3 text-center">
+                                <small class="text-muted">Total 7-Day Revenue:</small>
+                                <div class="fs-4 fw-bold">₱{{ "%.2f"|format(chart_data.total_booking + chart_data.total_shop) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card white-card">
+                        <div class="card-header py-3 border-bottom d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-calendar-week-fill text-warning me-2"></i> Peak Day Analysis</h6>
+                            <small class="text-muted">Total court reservations grouped by day of the week</small>
+                        </div>
+                        <div class="card-body p-3">
+                            <canvas id="busiestDaysChart" style="max-height: 220px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- LOGOUT MODAL -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);">
+                    <h5 class="modal-title fw-bold" id="logoutModalLabel"><i class="bi bi-box-arrow-right me-2"></i>Log out?</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div style="font-size: 3.5rem; color: #dc2626; margin-bottom: 0.75rem;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-primary);">Are you sure you want to log out?</h5>
+                    <p class="text-muted mb-0 small">You'll need to sign in again to access your reservations, orders, and shop.</p>
+                </div>
+                <div class="modal-footer bg-light border-0 justify-content-center gap-2 pb-4">
+                    <button type="button" class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i> Cancel</button>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger fw-bold px-4 rounded-3"><i class="bi bi-box-arrow-right me-1"></i> Yes, Log Out</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- THEME TOGGLE -->
+    <script>
+        (function () {
+            const themeToggle = document.getElementById('themeToggle');
+            const root = document.documentElement;
+
+            function applyTheme(theme) {
+                root.setAttribute('data-bs-theme', theme);
+                root.dataset.ebcTheme = theme;
+                try { localStorage.setItem('ebc-theme', theme); } catch (e) {}
+                window.dispatchEvent(new CustomEvent('ebc:themechange', { detail: { theme } }));
+            }
+            function currentTheme() {
+                return root.dataset.ebcTheme || root.getAttribute('data-bs-theme') || 'light';
+            }
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function () {
+                    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+                    applyTheme(next);
+                });
+            }
+            window.ebcGetTheme = currentTheme;
+        })();
+    </script>
+
+    <!-- SIDEBAR TOGGLE -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sidebar = document.getElementById('appSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const mainWrapper = document.getElementById('mainWrapper');
+            const isDesktop = () => window.matchMedia('(min-width: 992px)').matches;
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                backdrop.classList.add('show');
+                if (isDesktop() && mainWrapper) mainWrapper.classList.add('shifted');
+            }
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                backdrop.classList.remove('show');
+                if (mainWrapper) mainWrapper.classList.remove('shifted');
+            }
+            function toggleSidebar() {
+                if (sidebar.classList.contains('open')) closeSidebar();
+                else openSidebar();
+            }
+            if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
+            if (backdrop) backdrop.addEventListener('click', closeSidebar);
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
+            });
+            window.addEventListener('resize', function () {
+                if (!isDesktop() && mainWrapper) mainWrapper.classList.remove('shifted');
+            });
+        });
+    </script>
+
+    <!-- NOTIFICATION BELL LOGIC -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const notifBadge = document.getElementById('notifBadge');
+            const notifList = document.getElementById('notifList');
+            const notifEmpty = document.getElementById('notifEmpty');
+            const notifClearBtn = document.getElementById('notifClearBtn');
+
+            let notifications = (typeof SERVER_NOTIFICATIONS !== 'undefined' && Array.isArray(SERVER_NOTIFICATIONS))
+                ? SERVER_NOTIFICATIONS
+                : [];
+
+            function renderNotifications() {
+                notifList.querySelectorAll('.notif-item').forEach(el => el.remove());
+                if (!notifications.length) {
+                    notifEmpty.style.display = '';
+                } else {
+                    notifEmpty.style.display = 'none';
+                    notifications.forEach(n => {
+                        const item = document.createElement('div');
+                        item.className = 'dropdown-item notif-item';
+                        const title = document.createElement('div');
+                        title.className = 'notif-item-title';
+                        title.textContent = n.title || 'Notification';
+                        const msg = document.createElement('div');
+                        msg.textContent = n.message || '';
+                        const time = document.createElement('div');
+                        time.className = 'notif-item-time';
+                        time.textContent = n.time || '';
+                        item.appendChild(title);
+                        item.appendChild(msg);
+                        item.appendChild(time);
+                        notifList.appendChild(item);
+                    });
+                }
+                if (notifications.length > 0) {
+                    notifBadge.textContent = notifications.length > 99 ? '99+' : notifications.length;
+                    notifBadge.style.display = '';
+                } else {
+                    notifBadge.style.display = 'none';
+                }
+            }
+
+            notifClearBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                
+                // Call the backend to mark them as read
+                fetch('/api/clear-notifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        notifications = [];
+                        renderNotifications();
+                    }
+                })
+                .catch(err => console.error("Error clearing notifications:", err));
+            });
+            
+            renderNotifications();
+        });
+    </script>
+
+    <!-- CHARTS -->
+    {% if is_admin and chart_data %}
+    <script>
+        (function () {
+            const rawChartData = JSON.parse('{{ chart_data | tojson | safe }}');
+            let barChart = null, pieChart = null, lineChart = null;
+
+            function themeColors() {
+                const isDark = (window.ebcGetTheme && window.ebcGetTheme()) === 'dark';
+                return {
+                    text: isDark ? '#cbd5e1' : '#475569',
+                    textMuted: isDark ? '#94a3b8' : '#64748b',
+                    grid: isDark ? 'rgba(212, 175, 55, 0.08)' : '#e2e8f0'
+                };
+            }
+
+            function buildCharts() {
+                const colors = themeColors();
+                Chart.defaults.color = colors.text;
+                Chart.defaults.borderColor = colors.grid;
+                Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+
+                if (barChart) barChart.destroy();
+                if (pieChart) pieChart.destroy();
+                if (lineChart) lineChart.destroy();
+
+                const ctxBar = document.getElementById('weeklyRevenueChart').getContext('2d');
+                barChart = new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: rawChartData.labels,
+                        datasets: [
+                            { label: 'Court Bookings (₱)', data: rawChartData.booking_series, backgroundColor: '#d4af37', borderRadius: 6 },
+                            { label: 'Pro Shop Sales (₱)', data: rawChartData.shop_series, backgroundColor: '#10b981', borderRadius: 6 }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', labels: { color: colors.text } },
+                            tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ₱' + c.raw.toFixed(2); } } }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: colors.textMuted } },
+                            y: { beginAtZero: true, ticks: { color: colors.textMuted, callback: function (v) { return '₱' + v; } } }
+                        }
+                    }
+                });
+
+                const ctxPie = document.getElementById('revenueShareChart').getContext('2d');
+                pieChart = new Chart(ctxPie, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Court Bookings', 'Pro Shop Sales'],
+                        datasets: [{ data: [rawChartData.total_booking, rawChartData.total_shop], backgroundColor: ['#d4af37', '#10b981'], hoverOffset: 6, borderWidth: 0 }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: colors.text } },
+                            tooltip: { callbacks: { label: function (c) { return c.label + ': ₱' + c.raw.toFixed(2); } } }
+                        }
+                    }
+                });
+
+                const ctxLine = document.getElementById('busiestDaysChart').getContext('2d');
+                lineChart = new Chart(ctxLine, {
+                    type: 'line',
+                    data: {
+                        labels: rawChartData.dow_labels,
+                        datasets: [{
+                            label: 'Total Verified Bookings',
+                            data: rawChartData.dow_series,
+                            borderColor: '#d4af37',
+                            backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                            fill: true, tension: 0.35,
+                            pointBackgroundColor: '#d4af37',
+                            pointHoverRadius: 7, pointRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { callbacks: { label: function (c) { return c.raw + ' Bookings Total'; } } }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: colors.textMuted } },
+                            y: { beginAtZero: true, ticks: { stepSize: 1, color: colors.textMuted } }
+                        }
+                    }
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', buildCharts);
+            window.addEventListener('ebc:themechange', buildCharts);
+        })();
+    </script>
+    {% endif %}
 </body>
 </html>

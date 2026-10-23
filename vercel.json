@@ -3,5 +3,6 @@
     "app.py": {
       "maxDuration": 15
     }
-  }
+  },
+  "regions": ["sin1"]
 }
