@@ -4,6 +4,6 @@ mysql-connector-python
 python-dotenv
 werkzeug
 dnspython
-resend>=0.8.0
 cloudinary
 Flask-Caching
+requests

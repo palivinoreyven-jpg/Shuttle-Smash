@@ -1,7 +1,6 @@
 import os
 import random
-import resend
-from resend.exceptions import ResendError
+import requests
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from db import get_db
@@ -9,25 +8,43 @@ from db import get_db
 auth_bp = Blueprint('auth', __name__)
 
 # ============================================================
-# RESEND EMAIL CONFIG
+# BREVO EMAIL CONFIG
 # ============================================================
-# Vercel will automatically inject this from your Environment Variables
-resend.api_key = os.environ.get("RESEND_API_KEY")
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY")
+# IMPORTANT: This MUST match the sender email you verified in Brevo
+BREVO_SENDER_EMAIL = "palivinoreyven@gmail.com" 
+BREVO_SENDER_NAME = "EBC Badminton"
 
 def send_otp_email(to_email, subject, code):
-    """Helper function to send OTP via Resend HTTP API"""
+    """Send OTP via Brevo HTTP API (works on Vercel)"""
+    if not BREVO_API_KEY:
+        print("[BREVO ERROR]: API key is missing.")
+        return False
+
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json"
+    }
+    payload = {
+        "sender": {"name": BREVO_SENDER_NAME, "email": BREVO_SENDER_EMAIL},
+        "to": [{"email": to_email}],
+        "subject": subject,
+        "htmlContent": f"<p>Your verification code is: <strong>{code}</strong></p>"
+    }
+
     try:
-        # Using "from" (not "sender") based on your Vercel logs
-        response = resend.Emails.send({
-            "from": "onboarding@resend.dev",
-            "to": [to_email],
-            "subject": subject,
-            "html": f"<p>Your verification code is: <strong>{code}</strong></p>"
-        })
-        print(f"[RESEND SUCCESS]: {response}")
-        return True
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        if response.status_code in [200, 201, 202]:
+            print(f"[BREVO SUCCESS]: Sent to {to_email}")
+            return True
+        else:
+            # This will print the exact error in Vercel Logs
+            print(f"[BREVO ERROR]: {response.status_code} - {response.text}")
+            return False
     except Exception as e:
-        print(f"[RESEND ERROR]: {e}")
+        print(f"[BREVO EXCEPTION]: {e}")
         return False
 
 
@@ -60,7 +77,6 @@ def signup():
                 'code': verification_code
             }
 
-            # Send OTP using Resend
             send_otp_email(
                 to_email=email, 
                 subject="EBC Badminton - Email Verification", 
@@ -170,7 +186,6 @@ def forgot_password():
             'verified': False
         }
 
-        # Send OTP using Resend
         send_otp_email(
             to_email=email, 
             subject="EBC Badminton - Password Reset Code", 
