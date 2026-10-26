@@ -2,7 +2,7 @@ import os
 import re
 import uuid
 from datetime import datetime, date, timedelta
-from flask import Blueprint, render_template, request, redirect, url_for, session, send_from_directory
+from flask import Blueprint, render_template, request, redirect, url_for, session, send_from_directory, flash
 from werkzeug.utils import secure_filename
 from db import get_db
 from helpers import create_notification, notify_all_admins, broadcast_notification, parse_time_obj
@@ -106,7 +106,6 @@ def _has_conflict(cursor, booking_id):
         
     court_num, b_date, b_time, b_dur = target
     
-    # Check if another VERIFIED booking exists for the same court and date
     cursor.execute("""
         SELECT booking_time, duration_hours 
         FROM badminton_bookings 
@@ -147,7 +146,8 @@ def verify_booking(booking_id):
     if _has_conflict(cursor, booking_id):
         cursor.close()
         conn.close()
-        return "<script>alert('Cannot verify: This time slot is already taken by a verified booking. Please reject this one.'); window.history.back();</script>"
+        flash('Cannot verify: This time slot is already taken by a verified booking. Please reject this one.', 'danger')
+        return redirect(url_for('bookings.my_bookings'))
 
     cursor.execute("""
         SELECT customer_name, email, court_number, booking_date, booking_time 
@@ -339,7 +339,8 @@ def verify_payment(booking_id):
     if _has_conflict(cursor, booking_id):
         cursor.close()
         conn.close()
-        return "<script>alert('Cannot verify: This time slot is already taken by a verified booking. Please reject this one.'); window.history.back();</script>"
+        flash('Cannot verify: This time slot is already taken by a verified booking. Please reject this one.', 'danger')
+        return redirect(url_for('bookings.my_bookings'))
 
     cursor.execute("""
         SELECT customer_name, email, court_number, booking_date, booking_time 
@@ -442,8 +443,6 @@ def reject_payment(booking_id):
         )
 
     return redirect(url_for('bookings.my_bookings'))
-
-
 # ============================================================
 # PAYMENT SETTINGS PAGE
 # ============================================================
@@ -749,6 +748,17 @@ def add_product():
         conn = get_db()
         cursor = conn.cursor()
 
+        # --- NEW CHECK: Prevent duplicate product names ---
+        cursor.execute("SELECT id FROM products WHERE LOWER(name) = LOWER(%s)", (name,))
+        existing_product = cursor.fetchone()
+        
+        if existing_product:
+            cursor.close()
+            conn.close()
+            flash('A product with this name already exists. Please use a different name.', 'danger')
+            return redirect(url_for('admin.admin_stocks'))
+        # ---------------------------------------------------
+
         cursor.execute("""
             INSERT INTO products (name, category, price, description, is_active, image_filename)
             VALUES (%s, %s, %s, %s, 1, NULL)
@@ -791,6 +801,17 @@ def update_product(product_id):
     if name and price:
         conn = get_db()
         cursor = conn.cursor()
+
+        # --- NEW CHECK: Prevent changing a name to an existing one ---
+        cursor.execute("SELECT id FROM products WHERE LOWER(name) = LOWER(%s) AND id != %s", (name, product_id))
+        existing_product = cursor.fetchone()
+        
+        if existing_product:
+            cursor.close()
+            conn.close()
+            flash('A product with this name already exists. Please use a different name.', 'danger')
+            return redirect(url_for('admin.admin_stocks'))
+        # ---------------------------------------------------
 
         cursor.execute("""
             UPDATE products 
