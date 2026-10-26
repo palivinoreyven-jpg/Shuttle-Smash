@@ -43,7 +43,6 @@ def _save_payment_proof(file_storage, booking_id):
         return None
 
     try:
-        # Optimized upload to prevent Vercel timeouts
         upload_result = cloudinary.uploader.upload(
             file_storage,
             folder="payment_proofs",
@@ -162,7 +161,7 @@ def index():
         total_shop_pages = max(1, (total_shop + PER_PAGE - 1) // PER_PAGE)
 
         cursor.execute("""
-            SELECT id, user_email, product_name, quantity, total_amount, transaction_date, status
+            SELECT id, user_email, product_name, quantity, total_amount, transaction_date, status, payment_proof_filename
             FROM shop_transactions 
             WHERE status IN ('Completed', 'Rejected')
             ORDER BY 
@@ -286,13 +285,11 @@ def clear_notifications():
     conn = get_db()
     cursor = conn.cursor()
     
-    # Mark all as read so they disappear from the bell
     cursor.execute("UPDATE notifications SET is_read = 1 WHERE user_email = %s", (user_email,))
     
     cursor.close()
     conn.close()
     
-    # Clear cache so the dashboard reloads with an empty bell
     cache.clear()
     
     return jsonify({'success': True})
@@ -502,11 +499,12 @@ def new_booking():
             req_end = req_start + timedelta(hours=duration_hours)
             formatted_time_str = req_start.strftime("%H:%M:%S")
 
+            # --- BLOCK ANY ACTIVE BOOKING (Pending, Pending Verification, Verified) ---
             cursor.execute("""
                 SELECT booking_time, duration_hours 
                 FROM badminton_bookings 
                 WHERE court_number = %s AND booking_date = %s
-                  AND LOWER(status) = 'verified'
+                  AND LOWER(status) NOT IN ('rejected', 'cancelled', 'completed')
             """, (court_number, booking_date))
             existing_bookings = cursor.fetchall()
 
@@ -830,6 +828,7 @@ def available_courts():
     conn = get_db()
     cursor = conn.cursor()
 
+    # When checking dropdown availability, only consider VERIFIED bookings
     cursor.execute("""
         SELECT court_number, booking_time, duration_hours
         FROM badminton_bookings

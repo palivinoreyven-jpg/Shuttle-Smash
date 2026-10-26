@@ -1,11 +1,11 @@
 import os
 import re
 import uuid
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, session, send_from_directory
 from werkzeug.utils import secure_filename
 from db import get_db
-from helpers import create_notification, notify_all_admins, broadcast_notification
+from helpers import create_notification, notify_all_admins, broadcast_notification, parse_time_obj
 from extensions import cache
 import cloudinary
 import cloudinary.uploader
@@ -91,6 +91,49 @@ def _set_setting(cursor, key, value):
 
 
 # ============================================================
+# HELPER: CHECK FOR OVERLAPPING VERIFIED BOOKINGS
+# ============================================================
+def _has_conflict(cursor, booking_id):
+    cursor.execute("""
+        SELECT court_number, booking_date, booking_time, duration_hours 
+        FROM badminton_bookings 
+        WHERE id = %s
+    """, (booking_id,))
+    target = cursor.fetchone()
+    
+    if not target:
+        return False
+        
+    court_num, b_date, b_time, b_dur = target
+    
+    # Check if another VERIFIED booking exists for the same court and date
+    cursor.execute("""
+        SELECT booking_time, duration_hours 
+        FROM badminton_bookings 
+        WHERE court_number = %s AND booking_date = %s 
+          AND id != %s AND LOWER(status) = 'verified'
+    """, (court_num, b_date, booking_id))
+    existing = cursor.fetchall()
+    
+    try:
+        req_start = parse_time_obj(b_time)
+        req_end = req_start + timedelta(hours=int(b_dur))
+    except Exception:
+        return False
+
+    for e_time, e_dur in existing:
+        try:
+            e_start = parse_time_obj(e_time)
+            e_end = e_start + timedelta(hours=int(e_dur))
+            if req_start < e_end and req_end > e_start:
+                return True
+        except Exception:
+            continue
+            
+    return False
+
+
+# ============================================================
 # BOOKING VERIFY / COMPLETE / REJECT
 # ============================================================
 @admin_bp.route('/verify/<int:booking_id>', methods=['POST'])
@@ -100,6 +143,12 @@ def verify_booking(booking_id):
 
     conn = get_db()
     cursor = conn.cursor()
+
+    if _has_conflict(cursor, booking_id):
+        cursor.close()
+        conn.close()
+        return "<script>alert('Cannot verify: This time slot is already taken by a verified booking. Please reject this one.'); window.history.back();</script>"
+
     cursor.execute("""
         SELECT customer_name, email, court_number, booking_date, booking_time 
         FROM badminton_bookings 
@@ -161,10 +210,10 @@ def complete_booking(booking_id):
         INSERT INTO past_bookings 
         (original_booking_id, customer_name, email, contact, court_number, 
          booking_date, booking_time, duration_hours, total_amount, status, 
-         verified_at, verified_by, payment_proof_filename)
+         verified_at, verified_by, payment_proof_filename, payment_reference)
         SELECT id, customer_name, email, contact, court_number, 
                booking_date, booking_time, duration_hours, total_amount, 'Completed',
-               verified_at, verified_by, payment_proof_filename
+               verified_at, verified_by, payment_proof_filename, payment_reference
         FROM badminton_bookings 
         WHERE id = %s
     """, (booking_id,))
@@ -219,10 +268,10 @@ def reject_booking(booking_id):
         INSERT INTO past_bookings 
         (original_booking_id, customer_name, email, contact, court_number, 
          booking_date, booking_time, duration_hours, total_amount, status,
-         verified_at, verified_by, payment_proof_filename)
+         verified_at, verified_by, payment_proof_filename, payment_reference)
         SELECT id, customer_name, email, contact, court_number, 
                booking_date, booking_time, duration_hours, total_amount, 'Rejected',
-               NOW(), %s, payment_proof_filename
+               NOW(), %s, payment_proof_filename, payment_reference
         FROM badminton_bookings 
         WHERE id = %s
     """, (session.get('user_email'), booking_id))
@@ -259,7 +308,6 @@ def reject_booking(booking_id):
 # ============================================================
 @admin_bp.route('/admin/payment-proof/<int:booking_id>', methods=['GET'])
 def view_payment_proof(booking_id):
-    """Redirect to the Cloudinary URL for the payment proof."""
     if not session.get('logged_in') or session.get('role') != 'admin':
         return redirect(url_for('auth.login'))
 
@@ -273,11 +321,9 @@ def view_payment_proof(booking_id):
     if not row or not row[0]:
         return "No proof uploaded", 404
 
-    # If it's a Cloudinary URL, redirect to it directly
     if str(row[0]).startswith('http'):
         return redirect(row[0])
 
-    # Fallback for old local files
     proof_dir = os.path.join(PROJECT_ROOT, 'static', 'uploads', 'payment_proofs')
     return send_from_directory(proof_dir, row[0])
 
@@ -289,6 +335,12 @@ def verify_payment(booking_id):
 
     conn = get_db()
     cursor = conn.cursor()
+
+    if _has_conflict(cursor, booking_id):
+        cursor.close()
+        conn.close()
+        return "<script>alert('Cannot verify: This time slot is already taken by a verified booking. Please reject this one.'); window.history.back();</script>"
+
     cursor.execute("""
         SELECT customer_name, email, court_number, booking_date, booking_time 
         FROM badminton_bookings 
@@ -357,10 +409,10 @@ def reject_payment(booking_id):
         INSERT INTO past_bookings 
         (original_booking_id, customer_name, email, contact, court_number, 
          booking_date, booking_time, duration_hours, total_amount, status,
-         verified_at, verified_by, payment_proof_filename)
+         verified_at, verified_by, payment_proof_filename, payment_reference)
         SELECT id, customer_name, email, contact, court_number, 
                booking_date, booking_time, duration_hours, total_amount, 'Rejected',
-               NOW(), %s, payment_proof_filename
+               NOW(), %s, payment_proof_filename, payment_reference
         FROM badminton_bookings 
         WHERE id = %s
     """, (session.get('user_email'), booking_id))

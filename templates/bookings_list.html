@@ -127,25 +127,9 @@
         html[data-ebc-theme="dark"] .sidebar-link.danger { color: #fca5a5; }
         html[data-ebc-theme="dark"] .sidebar-link.danger:hover { background: rgba(220, 38, 38, 0.15); border-color: rgba(220, 38, 38, 0.5); color: #ffffff; }
         .sidebar-footer { padding: 1rem; border-top: 1px solid var(--sidebar-border); font-size: 0.8rem; color: var(--text-muted); }
-        .sidebar-user-name {
-            color: var(--text-primary);
-            font-weight: 700;
-            font-size: 0.9rem;
-            margin-bottom: 0.15rem;
-            word-break: break-word;
-        }
-        .sidebar-user-email {
-            color: var(--text-muted);
-            font-weight: 500;
-            font-size: 0.75rem;
-            word-break: break-all;
-        }
-        .sidebar-backdrop {
-            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35);
-            backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
-            z-index: 1040; opacity: 0; visibility: hidden; pointer-events: none;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
+        .sidebar-user-name { color: var(--text-primary); font-weight: 700; font-size: 0.9rem; margin-bottom: 0.15rem; word-break: break-word; }
+        .sidebar-user-email { color: var(--text-muted); font-weight: 500; font-size: 0.75rem; word-break: break-all; }
+        .sidebar-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); z-index: 1040; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .sidebar-backdrop.show { opacity: 1; visibility: visible; pointer-events: auto; }
 
         /* NAVBAR */
@@ -439,6 +423,18 @@
 
         <div class="container py-4 mb-5">
 
+            <!-- Flash Messages (This is the new part!) -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
             <!-- Header -->
             <div class="white-card p-4 mb-4">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
@@ -609,7 +605,6 @@
 
                     {% if is_admin %}
                         {% if b[9] == 'Pending Verification' %}
-                            <!-- View Proof button always shows for pending -->
                             <a href="{{ url_for('admin.view_payment_proof', booking_id=b[0]) }}"
                                target="_blank"
                                class="btn btn-sm btn-outline-info fw-bold">
