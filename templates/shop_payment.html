@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Shop Payment - EBC Badminton</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --gold-primary: #d4af37;
+            --gold-gradient: linear-gradient(135deg, #fff099 0%, #d4af37 50%, #aa7c11 100%);
+            --header-bg: rgba(10, 12, 16, 0.95);
+        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
+        .custom-navbar { background: var(--header-bg) !important; border-bottom: 1px solid rgba(212, 175, 55, 0.25); }
+        .navbar-logo { height: 48px; width: auto; }
+        .brand-title { font-size: 1.25rem; font-weight: 800; background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .payment-card { background: #fff; border-radius: 18px; border: 1px solid rgba(212, 175, 55, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; }
+        .payment-header { background: var(--header-bg); color: #fff; padding: 28px; text-align: center; border-bottom: 2px solid var(--gold-primary); }
+        .payment-header h3 { background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .section-subtitle { color: #996515; font-weight: 700; border-bottom: 2px solid rgba(212, 175, 55, 0.2); padding-bottom: 8px; }
+        .qr-container { text-align: center; padding: 1.5rem; border-radius: 14px; border: 2px dashed rgba(212, 175, 55, 0.4); }
+        .qr-image { max-width: 260px; width: 100%; border-radius: 12px; }
+        .wallet-info { margin-top: 1rem; padding: 0.75rem; background: rgba(212, 175, 55, 0.08); border-radius: 10px; }
+        .proof-input-wrapper { border: 2px dashed rgba(212, 175, 55, 0.5); border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; transition: 0.2s; }
+        .proof-input-wrapper:hover { background: rgba(212, 175, 55, 0.05); }
+        .proof-input-wrapper input[type="file"] { display: none; }
+        .btn-payment { background: var(--gold-gradient); color: #000; font-weight: 700; border-radius: 10px; padding: 14px; border: none; transition: 0.2s; }
+        .btn-payment:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3); }
+        .summary-list { list-style: none; padding: 0; }
+        .summary-list li { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px dashed #e2e8f0; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar sticky-top custom-navbar mb-4">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-3" href="{{ url_for('bookings.index') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" class="navbar-logo" onerror="this.src='/static/image/logo.png';">
+                <span class="brand-title">Esguerra Badminton Court</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="payment-card">
+                    <div class="payment-header">
+                        <h3 class="fw-bold"><i class="bi bi-bag-check me-2"></i>Complete Shop Payment</h3>
+                        <p class="mb-0 opacity-75 small">Order #{{ order[0] }} — Pending</p>
+                    </div>
+
+                    <div class="p-4 p-md-5">
+                        <div class="row g-4">
+                            <!-- QR Code -->
+                            <div class="col-md-5">
+                                <h5 class="section-subtitle mb-3">Scan to Pay</h5>
+                                <div class="qr-container">
+                                    {% if qr_filename %}
+                                        <img src="{{ qr_filename }}" class="qr-image">
+                                        <div class="wallet-info">
+                                            <div class="fw-bold text-uppercase text-muted small">{{ wallet_name }}</div>
+                                            <div class="fw-bold fs-5">{{ wallet_number }}</div>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-danger">QR Code not set up yet.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Form -->
+                            <div class="col-md-7">
+                                <h5 class="section-subtitle mb-3">Payment Details</h5>
+                                <ul class="summary-list mb-4">
+                                    <li><span class="text-muted fw-bold">Item</span> <span class="fw-bold">{{ order[2] }} (x{{ order[3] }})</span></li>
+                                    <li><span class="text-muted fw-bold">Total Amount</span> <span class="fw-bold text-success fs-5">₱{{ "%.2f"|format(order[4]) }}</span></li>
+                                </ul>
+
+                                <form action="{{ url_for('shop.shop_submit_payment', order_id=order[0]) }}" method="POST" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small text-secondary">Reference Number</label>
+                                        <input type="text" name="payment_reference" class="form-control" placeholder="Enter GCash Ref No." required>
+                                    </div>
+
+                                    <label for="proofInput" class="proof-input-wrapper d-block w-100 mb-3">
+                                        <i class="bi bi-cloud-upload fs-1 text-warning"></i>
+                                        <div class="fw-bold mt-2">Click to upload receipt</div>
+                                        <div class="small text-muted" id="fileName">PNG, JPG, Max 10MB</div>
+                                        <input type="file" id="proofInput" name="payment_proof" accept="image/*" required>
+                                    </label>
+
+                                    <button type="submit" class="btn btn-payment w-100"><i class="bi bi-send-check me-1"></i> Submit Payment</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('proofInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                document.getElementById('fileName').innerHTML = '<strong class="text-success">✓ ' + e.target.files[0].name + '</strong>';
+            }
+        });
+    </script>
+</body>
+</html>

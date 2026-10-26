@@ -1,15 +1,27 @@
+import os
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from db import get_db
 from helpers import notify_all_admins, create_notification
 from extensions import cache
+import cloudinary
+import cloudinary.uploader
 
 shop_bp = Blueprint('shop', __name__)
 
 PER_PAGE = 5
 
+# ============================================================
+# CLOUDINARY CONFIG
+# ============================================================
+cloudinary.config( 
+  cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'), 
+  api_key = os.getenv('CLOUDINARY_API_KEY'), 
+  api_secret = os.getenv('CLOUDINARY_API_SECRET') 
+)
+
 
 @shop_bp.route('/shop')
-@cache.cached(timeout=120, query_string=True) # Cache for 2 minutes
+@cache.cached(timeout=120, query_string=True)
 def shop():
     if not session.get('logged_in'):
         return redirect(url_for('auth.login'))
@@ -29,8 +41,7 @@ def shop():
     categories_tuples = cursor.fetchall()
     categories = [cat[0] for cat in categories_tuples]
 
-    # Product listing — filter by category (optional), always active only,
-    # and include the image filename column.
+    # Product listing
     if selected_category and selected_category != 'All':
         cursor.execute("""
             SELECT p.id, p.name, p.category, p.price, ps.stock, p.description, p.image_filename
@@ -187,59 +198,132 @@ def checkout():
             """, (user_email, p_name, qty, subtotal))
 
             last_transaction_id = cursor.lastrowid
-            order_items.append({
-                'name': p_name,
-                'qty': qty,
-                'subtotal': subtotal
-            })
+            order_items.append({'name': p_name, 'qty': qty, 'subtotal': subtotal})
 
     cursor.close()
     conn.close()
 
     if last_transaction_id:
-        try:
-            total_qty = sum(i['qty'] for i in order_items)
-            item_summary = ", ".join(f"{i['name']} x{i['qty']}" for i in order_items[:3])
-            if len(order_items) > 3:
-                item_summary += f" (+{len(order_items) - 3} more)"
-
-            notify_all_admins(
-                title="New Shop Order",
-                message=(
-                    f"{user_email} placed a new order ({total_qty} item(s)): "
-                    f"{item_summary}. Please review and verify."
-                )
-            )
-        except Exception as e:
-            print(f"[SHOP NOTIFY ERROR]: {e}")
-
-    if last_transaction_id and user_email and user_email != 'Unknown User':
-        try:
-            total_qty = sum(i['qty'] for i in order_items)
-            create_notification(
-                user_email=user_email,
-                title="Order Received",
-                message=(
-                    f"Your order (#{last_transaction_id}, {total_qty} item(s)) "
-                    f"has been received and is pending admin verification. "
-                    f"You'll be notified once it's approved."
-                )
-            )
-        except Exception as e:
-            print(f"[USER NOTIFY ERROR]: {e}")
-
-    session['cart'] = {}
-    session.modified = True
-
-    if last_transaction_id:
-        return redirect(url_for('shop.my_orders'))
+        # Clear the cart
+        session['cart'] = {}
+        session.modified = True
+        cache.clear()
+        
+        # Redirect to the new payment page instead of directly to my_orders
+        return redirect(url_for('shop.shop_payment', order_id=last_transaction_id))
 
     return redirect(url_for('shop.shop'))
 
 
-# ============================================================
-# MY ORDERS — closest to done first
-# ============================================================
+@shop_bp.route('/shop/payment/<int:order_id>', methods=['GET'])
+def shop_payment(order_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('auth.login'))
+
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT id, user_email, product_name, quantity, total_amount, status 
+        FROM shop_transactions WHERE id = %s
+    """, (order_id,))
+    order = cursor.fetchone()
+
+    if not order:
+        cursor.close()
+        conn.close()
+        return redirect(url_for('shop.my_orders'))
+
+    # Get the admin's QR code settings
+    cursor.execute("""
+        SELECT setting_key, setting_value FROM settings
+        WHERE setting_key IN ('payment_qr_filename', 'payment_wallet_name',
+                              'payment_wallet_number', 'payment_instructions')
+    """)
+    settings_rows = dict(cursor.fetchall())
+
+    cursor.close()
+    conn.close()
+
+    return render_template(
+        'shop_payment.html',
+        order=order,
+        qr_filename=settings_rows.get('payment_qr_filename'),
+        wallet_name=settings_rows.get('payment_wallet_name') or 'GCash',
+        wallet_number=settings_rows.get('payment_wallet_number') or '',
+        payment_instructions=settings_rows.get('payment_instructions') or '',
+    )
+
+
+@shop_bp.route('/shop/submit-payment/<int:order_id>', methods=['POST'])
+def shop_submit_payment(order_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('auth.login'))
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, user_email, product_name, quantity, total_amount FROM shop_transactions WHERE id = %s", (order_id,))
+    order = cursor.fetchone()
+
+    if not order:
+        cursor.close()
+        conn.close()
+        return redirect(url_for('shop.my_orders'))
+
+    # Handle Cloudinary Upload
+    proof_file = request.files.get('payment_proof')
+    if not proof_file or not proof_file.filename:
+        cursor.close()
+        conn.close()
+        return redirect(url_for('shop.shop_payment', order_id=order_id))
+
+    try:
+        upload_result = cloudinary.uploader.upload(
+            proof_file,
+            folder="shop_proofs",
+            public_id=f"shop_proof_{order_id}",
+            quality="auto",
+            fetch_format="auto"
+        )
+        saved_url = upload_result.get("secure_url")
+    except Exception as e:
+        print(f"[CLOUDINARY ERROR]: {e}")
+        saved_url = None
+
+    if not saved_url:
+        cursor.close()
+        conn.close()
+        return redirect(url_for('shop.shop_payment', order_id=order_id))
+
+    payment_reference = request.form.get('payment_reference', '').strip()
+
+    cursor.execute("""
+        UPDATE shop_transactions
+        SET payment_proof_filename = %s,
+            payment_reference = %s
+        WHERE id = %s
+    """, (saved_url, payment_reference, order_id))
+
+    cursor.close()
+    conn.close()
+    cache.clear()
+
+    try:
+        ref_text = f" Ref No: {payment_reference}." if payment_reference else ""
+        notify_all_admins(
+            title="Shop Payment Proof Submitted",
+            message=(
+                f"{order[1]} uploaded payment for Order #{order_id} ({order[2]}). "
+                f"Total ₱{float(order[4]):.2f}.{ref_text} Please verify."
+            )
+        )
+    except Exception as e:
+        print(f"[NOTIFY ERROR]: {e}")
+
+    return redirect(url_for('shop.my_orders'))
+
+
 @shop_bp.route('/shop/orders')
 @cache.cached(timeout=60, query_string=True, key_prefix=lambda: f"my_orders_{session.get('user_email')}")
 def my_orders():
@@ -273,7 +357,7 @@ def my_orders():
 
     if is_admin:
         cursor.execute("""
-            SELECT id, user_email, product_name, quantity, total_amount, transaction_date, status
+            SELECT id, user_email, product_name, quantity, total_amount, transaction_date, status, payment_proof_filename, payment_reference
             FROM shop_transactions
             WHERE status IN ('Pending', 'Verified', 'Shipped')
             ORDER BY 
@@ -288,7 +372,7 @@ def my_orders():
         """, (PER_PAGE, active_offset))
     else:
         cursor.execute("""
-            SELECT id, user_email, product_name, quantity, total_amount, transaction_date, status
+            SELECT id, user_email, product_name, quantity, total_amount, transaction_date, status, payment_proof_filename, payment_reference
             FROM shop_transactions
             WHERE user_email = %s AND status IN ('Pending', 'Verified', 'Shipped')
             ORDER BY 
