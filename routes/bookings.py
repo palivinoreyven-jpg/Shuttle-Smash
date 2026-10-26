@@ -499,7 +499,6 @@ def new_booking():
             req_end = req_start + timedelta(hours=duration_hours)
             formatted_time_str = req_start.strftime("%H:%M:%S")
 
-            # --- BLOCK ANY ACTIVE BOOKING (Pending, Pending Verification, Verified) ---
             cursor.execute("""
                 SELECT booking_time, duration_hours 
                 FROM badminton_bookings 
@@ -802,7 +801,7 @@ def view_receipt(transaction_id):
 
 
 # ============================================================
-# API — AVAILABLE COURTS
+# API — AVAILABLE COURTS (Now returns status for yellow pending)
 # ============================================================
 @bookings_bp.route('/api/available-courts')
 def available_courts():
@@ -828,12 +827,12 @@ def available_courts():
     conn = get_db()
     cursor = conn.cursor()
 
-    # When checking dropdown availability, only consider VERIFIED bookings
+    # Check ALL active bookings
     cursor.execute("""
-        SELECT court_number, booking_time, duration_hours
+        SELECT court_number, booking_time, duration_hours, status
         FROM badminton_bookings
         WHERE booking_date = %s
-          AND LOWER(status) = 'verified'
+          AND LOWER(status) NOT IN ('rejected', 'cancelled', 'completed')
     """, (booking_date,))
     rows = cursor.fetchall()
 
@@ -841,7 +840,7 @@ def available_courts():
     conn.close()
 
     booked_details = []
-    for court_num, b_time, b_duration in rows:
+    for court_num, b_time, b_duration, b_status in rows:
         try:
             b_start = parse_time_obj(b_time)
             b_end = b_start + timedelta(hours=int(b_duration))
@@ -859,7 +858,8 @@ def available_courts():
 
             booked_details.append({
                 'court': int(court_num),
-                'time_range': time_range
+                'time_range': time_range,
+                'status': b_status # Send status to frontend
             })
 
     return jsonify({'booked': booked_details})

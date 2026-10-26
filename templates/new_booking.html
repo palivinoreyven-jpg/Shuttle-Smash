@@ -188,11 +188,17 @@
         }
 
         /* ============================================
-           COURT DROPDOWN — UNAVAILABLE OPTIONS
+           COURT DROPDOWN — UNAVAILABLE & PENDING OPTIONS
            ============================================ */
         .time-select option.court-unavailable {
             color: #dc2626 !important;
             background: rgba(220, 38, 38, 0.10) !important;
+            font-weight: 700;
+        }
+
+        .time-select option.court-pending {
+            color: #b45309 !important;
+            background: rgba(245, 158, 11, 0.10) !important;
             font-weight: 700;
         }
 
@@ -254,7 +260,6 @@
                             </div>
                         {% endif %}
 
-                        <!-- PASSING DATA VIA DATA ATTRIBUTES -->
                         <form id="bookingForm" action="{{ url_for('bookings.new_booking') }}" method="POST" 
                               data-admin="{{ 'true' if session.get('role') == 'admin' else 'false' }}"
                               data-blocked="{{ blocked_dates | tojson | forceescape }}">
@@ -360,7 +365,6 @@
                                         <option value="22:00">10:00 PM</option>
                                         <option value="23:00">11:00 PM</option>
                                     </select>
-                                    <!-- Hidden input to send the calculated duration to Python -->
                                     <input type="hidden" id="inputDuration" name="duration_hours" value="1">
                                 </div>
 
@@ -464,7 +468,6 @@
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('bookingForm');
             
-            // Read the Jinja data from the HTML attributes
             const IS_ADMIN = form.dataset.admin === 'true';
             const BLOCKED_DATES = JSON.parse(form.dataset.blocked);
 
@@ -482,7 +485,7 @@
             const HOURLY_RATE = 150;
 
             // ============================================
-            // FLATPICKR — blocks + strikethrough on blocked dates
+            // FLATPICKR
             // ============================================
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -550,7 +553,7 @@
                 displayTotal.textContent = `₱${total.toFixed(2)}`;
             }
 
-            // ---- Calculate Duration from Start/End Time ----
+            // ---- Calculate Duration ----
             function calculateDuration() {
                 const start = timeSelect.value;
                 const end = endTimeSelect.value;
@@ -577,7 +580,7 @@
             endTimeSelect.addEventListener('change', calculateDuration);
 
             // ============================================
-            // COURT AVAILABILITY (AJAX)
+            // COURT AVAILABILITY (AJAX) - with Yellow/Red logic
             // ============================================
             function refreshCourtAvailability() {
                 const date = dateInput.value;
@@ -597,19 +600,15 @@
                 fetch(`/api/available-courts?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&duration=${encodeURIComponent(duration)}`)
                     .then(r => r.json())
                     .then(data => {
-                        // The new API returns an array of objects: [{ court: 1, time_range: "..." }]
                         const bookedData = data.booked || [];
-                        
-                        // Update the dropdown options
                         applyCourtAvailability(bookedData);
 
-                        // Update the hint text below the dropdown
                         if (bookedData.length === 4) {
                             courtHint.textContent = 'All courts are reserved for this time slot. Try a different time.';
                             courtHint.classList.add('text-warn');
                         } else if (bookedData.length > 0) {
                             const names = bookedData.map(b => `Court ${b.court}`).join(', ');
-                            courtHint.textContent = 'Unavailable: ' + names + ' (shown in red).';
+                            courtHint.textContent = 'Unavailable or pending: ' + names + ' (check dropdown).';
                             courtHint.classList.add('text-warn');
                         } else {
                             courtHint.textContent = 'All courts are available.';
@@ -624,29 +623,39 @@
             }
 
             function applyCourtAvailability(bookedData) {
-                // Create a map for quick lookup: { 2: "09:00 AM - 10:00 AM" }
                 const bookedMap = {};
                 bookedData.forEach(item => {
-                    bookedMap[item.court] = item.time_range;
+                    bookedMap[item.court] = item;
                 });
 
                 Array.from(courtSelect.options).forEach(opt => {
                     if (!opt.value) return;
                     const num = Number(opt.dataset.courtNum);
-                    const isBooked = bookedMap[num] !== undefined;
+                    const booking = bookedMap[num];
+                    const isBooked = booking !== undefined;
 
                     if (isBooked) {
-                        opt.disabled = true;
-                        opt.classList.add('court-unavailable');
-                        opt.classList.remove('court-available');
-                        // Display the exact time range!
-                        opt.textContent = `Court ${num} — Occupied ${bookedMap[num]}`;
+                        const isPending = booking.status && booking.status.toLowerCase().includes('pending');
+                        
+                        opt.disabled = false; // Allow selecting to see backend message
+                        
+                        if (isPending) {
+                            opt.classList.add('court-pending');
+                            opt.classList.remove('court-unavailable', 'court-available');
+                            opt.textContent = `Court ${num} — Pending ${booking.time_range}`;
+                        } else {
+                            opt.classList.add('court-unavailable');
+                            opt.classList.remove('court-pending', 'court-available');
+                            opt.textContent = `Court ${num} — Occupied ${booking.time_range}`;
+                            opt.disabled = true; // Hard disable if verified
+                        }
+                        
                         if (courtSelect.value === opt.value) {
                             courtSelect.value = '';
                         }
                     } else {
                         opt.disabled = false;
-                        opt.classList.remove('court-unavailable');
+                        opt.classList.remove('court-unavailable', 'court-pending');
                         opt.classList.add('court-available');
                         opt.textContent = `Court ${num}`;
                     }
@@ -657,18 +666,18 @@
                 Array.from(courtSelect.options).forEach(opt => {
                     if (!opt.value) return;
                     opt.disabled = false;
-                    opt.classList.remove('court-unavailable');
+                    opt.classList.remove('court-unavailable', 'court-pending');
                     opt.classList.add('court-available');
                     opt.textContent = 'Court ' + opt.dataset.courtNum;
                 });
             }
 
             // ============================================
-            // REVIEW & CONTINUE TO PAYMENT
+            // REVIEW & CONTINUE
             // ============================================
             reviewBtn.addEventListener('click', function () {
                 validateContact();
-                calculateDuration(); // Ensure duration is calculated before checking validity
+                calculateDuration();
 
                 if (!form.checkValidity()) {
                     form.reportValidity();
